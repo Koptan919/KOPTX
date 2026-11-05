@@ -13,14 +13,20 @@ jobs:
       - name: Prepare project
         run: |
           mkdir -p app/www
-          cp index.html sw.js manifest.json icon-192.png icon-512.png app/www/
+          cp index.html sw.js manifest.json app.css i18n.js core.js views.js more.js icon-192.png icon-512.png app/www/
           cd app
           npm init -y
-          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/ios@6
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/ios@6 @capacitor/camera@6 @capacitor/filesystem@6 @capacitor/share@6
           npx cap init KOPTAN com.koptan.app --web-dir www
+          node -e "const f='capacitor.config.json',c=require('./'+f);c.backgroundColor='#0b0c0f';require('fs').writeFileSync(f,JSON.stringify(c,null,2))"
           npx cap add ios
           PLIST=ios/App/App/Info.plist
-          plutil -insert NSCameraUsageDescription -string "KOPTAN uses the camera to scan barcodes and take photos." "$PLIST"
+          plutil -insert NSCameraUsageDescription -string "KOPTAN uses the camera to take product and receipt photos." "$PLIST"
+          plutil -insert NSPhotoLibraryUsageDescription -string "KOPTAN lets you pick product and receipt photos from your library." "$PLIST"
+          plutil -insert NSPhotoLibraryAddUsageDescription -string "KOPTAN can save photos to your library." "$PLIST"
+          plutil -replace CFBundleShortVersionString -string "9.0.0" "$PLIST"
+          ICON=$(ls ios/App/App/Assets.xcassets/AppIcon.appiconset/*.png | head -1)
+          sips -z 1024 1024 www/icon-512.png --out "$ICON"
           npx cap sync ios
       - name: Build unsigned IPA
         run: |
@@ -39,5 +45,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="ios-build-${{ github.run_number }}"
-          gh release create "$TAG" KOPTAN.ipa --repo "${{ github.repository }}" --target "${{ github.sha }}" --title "KOPTAN iOS $TAG" --notes "Unsigned IPA: install with Sideloadly or AltStore." --latest=false
+          TAG="ios-v9.0.0-build-${{ github.run_number }}"
+          gh release create "$TAG" KOPTAN.ipa --repo "${{ github.repository }}" --target "${{ github.sha }}" --title "KOPTAN iOS 9.0.0 (build ${{ github.run_number }})" --notes "Unsigned IPA: install with Sideloadly or AltStore." --latest=false

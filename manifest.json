@@ -1,6 +1,6 @@
 {
  "id": "./index.html",
- "name": "KOPTAN",
+ "name": "KOPTAN — مدير أعمالي",
  "short_name": "KOPTAN",
  "lang": "ar",
  "dir": "rtl",
@@ -8,8 +8,8 @@
  "scope": "./",
  "display": "standalone",
  "orientation": "portrait",
- "background_color": "#04060c",
- "theme_color": "#04060c",
+ "background_color": "#0b0c0f",
+ "theme_color": "#0c0d10",
  "icons": [
   {
    "src": "icon-192.png",
@@ -39,19 +39,30 @@
  "shortcuts": [
   {
    "name": "تسجيل بيع",
+   "short_name": "بيع",
    "url": "./index.html?a=sale"
   },
   {
-   "name": "إضافة مصروف",
+   "name": "مصروف جديد",
+   "short_name": "مصروف",
    "url": "./index.html?a=exp"
   },
   {
-   "name": "إضافة منتج",
+   "name": "منتج جديد",
+   "short_name": "منتج",
    "url": "./index.html?a=prod"
   },
   {
-   "name": "إضافة دين",
+   "name": "دين جديد",
+   "short_name": "دين",
    "url": "./index.html?a=debt"
   }
+ ],
+ "version": "9.0.0",
+ "description": "إدارة المخزون والمبيعات والمصاريف والديون — يعمل دون إنترنت",
+ "categories": [
+  "business",
+  "finance",
+  "productivity"
  ]
 }

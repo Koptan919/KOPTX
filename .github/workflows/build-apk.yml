@@ -5,6 +5,11 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      KS: ${{ secrets.KEYSTORE_BASE64 }}
+      KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PASS: ${{ secrets.KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -17,27 +22,48 @@ jobs:
       - name: Prepare project
         run: |
           mkdir -p app/www
-          cp index.html sw.js manifest.json icon-192.png icon-512.png app/www/
+          cp index.html sw.js manifest.json app.css i18n.js core.js views.js more.js icon-192.png icon-512.png app/www/
           cd app
           npm init -y
-          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/camera@6 @capacitor/filesystem@6 @capacitor/share@6
           npx cap init KOPTAN com.koptan.app --web-dir www
+          node -e "const f='capacitor.config.json',c=require('./'+f);c.backgroundColor='#0b0c0f';c.android={backgroundColor:'#0b0c0f'};require('fs').writeFileSync(f,JSON.stringify(c,null,2))"
           npx cap add android
-          sed -i 's#<application#<uses-permission android:name="android.permission.CAMERA" />\n    <application#' android/app/src/main/AndroidManifest.xml
+          M=android/app/src/main/AndroidManifest.xml
+          sed -i 's#<application#<uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />\n    <application#' $M
+          sed -i "s/versionCode [0-9]*/versionCode $((100 + ${{ github.run_number }}))/; s/versionName \"[^\"]*\"/versionName \"9.0.0\"/" android/app/build.gradle
+          # launcher icon: Titanium x Burgundy
+          RES=android/app/src/main/res
+          rm -rf $RES/mipmap-anydpi-v26
+          for d in $RES/mipmap-*; do cp www/icon-192.png $d/ic_launcher.png; cp www/icon-192.png $d/ic_launcher_round.png; cp www/icon-192.png $d/ic_launcher_foreground.png; done
           npx cap sync android
       - name: Build APK
         run: |
           cd app/android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          if [ -n "$KS" ]; then
+            echo "$KS" | base64 -d > "$RUNNER_TEMP/koptan.jks"
+            ./gradlew assembleRelease \
+              -Pandroid.injected.signing.store.file="$RUNNER_TEMP/koptan.jks" \
+              -Pandroid.injected.signing.store.password="$KS_PASS" \
+              -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+              -Pandroid.injected.signing.key.password="$KEY_PASS"
+            cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/KOPTAN.apk"
+            echo "SIGNING=release (fixed key — installs as an update)" >> "$GITHUB_ENV"
+          else
+            ./gradlew assembleDebug
+            cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/KOPTAN.apk"
+            echo "SIGNING=debug (temporary key)" >> "$GITHUB_ENV"
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: KOPTAN-apk
-          path: app/android/app/build/outputs/apk/debug/app-debug.apk
+          path: KOPTAN.apk
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp app/android/app/build/outputs/apk/debug/app-debug.apk KOPTAN.apk
-          TAG="build-${{ github.run_number }}"
-          gh release create "$TAG" KOPTAN.apk --repo "${{ github.repository }}" --target "${{ github.sha }}" --title "KOPTAN $TAG" --notes "APK file: KOPTAN.apk" --latest
+          TAG="v9.0.0-build-${{ github.run_number }}"
+          gh release create "$TAG" KOPTAN.apk --repo "${{ github.repository }}" --target "${{ github.sha }}" \
+            --title "KOPTAN 9.0.0 (build ${{ github.run_number }})" \
+            --notes "Titanium Liquid Glass edition. APK file: KOPTAN.apk — signing: $SIGNING" --latest
