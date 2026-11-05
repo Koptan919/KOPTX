@@ -34,6 +34,8 @@ jobs:
           M=android/app/src/main/AndroidManifest.xml
           sed -i 's#<application#<uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />\n    <application#' $M
           sed -i "s/versionCode [0-9]*/versionCode $((100 + ${{ github.run_number }}))/; s/versionName \"[^\"]*\"/versionName \"$VER\"/" android/app/build.gradle
+          # the updater plugin pins androidx.work 2.11 (needs compileSdk 35 / AGP 8.6); Capacitor 6 uses 34 / AGP 8.2 → force 2.9.1
+          printf '\nallprojects {\n    configurations.all {\n        resolutionStrategy.force "androidx.work:work-runtime:2.9.1"\n    }\n}\n' >> android/build.gradle
           # launcher icon: Titanium x Burgundy
           RES=android/app/src/main/res
           rm -rf $RES/mipmap-anydpi-v26
