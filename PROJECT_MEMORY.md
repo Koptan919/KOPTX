@@ -143,7 +143,7 @@ Rules:
 ### 2026-11-05: v9.0.1 Android self-update
 - Added `selfUpdate()` (manual-mode `@capgo/capacitor-updater`, `statsUrl:''` so no telemetry, `appReadyTimeout:15000`, `resetWhenUpdate:true`). Added Settings › About › “Check for updates”. Added `tools/publish-web.sh`. Workflows now read the version from `core.js`. Live check verifies `version.json` and the zip.
 - Verified with a mocked native plugin: newer → download + `next` + “Update now” → `set`; same version → nothing; offline → silent auto check, clear message on manual check. Deployed 9.0.1 + `koptan-9.0.1.zip` to gh-pages.
-- APK build fixes: updater 6.53.0 needed compileSdk 35 → pinned **6.25.6**; that still pulls `androidx.work 2.11.0` (needs SDK 35 / AGP 8.6) → workflow appends `resolutionStrategy.force "androidx.work:work-runtime:2.9.1"` to `android/build.gradle`. **Result of that build: see Known issues.**
+- APK build fixes: updater 6.53.0 needed compileSdk 35 → pinned **6.25.6**; that still pulls `androidx.work 2.11.0` (needs SDK 35 / AGP 8.6) → workflow appends `resolutionStrategy.force "androidx.work:work-runtime:2.9.1"` to `android/build.gradle`. That still failed: play-services-tasks needs minSdk 23 → workflow sets `minSdkVersion = 23` (Android 6.0+). **Build APK run #7 succeeded** → release `v9.0.1-build-7` (debug-signed).
 - Moved the test suite from a temporary folder into `tests/` (+ `tests/run.sh`, `tests/fixtures/v8`). Fixed a timing race in test O1.
 
 ---
@@ -151,7 +151,7 @@ Rules:
 ## 8. Known issues / pending
 
 - **APK signing:** builds use the runner's throwaway **debug key** (no `KEYSTORE_*` secrets configured), so a newly built APK cannot install over an older one. Users must back up → uninstall → install → restore once. Self-update (9.0.1+) avoids this for web-layer changes. Pending: a fixed release key. The workflow already supports secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`; the owner has to add them in the repo's GitHub settings.
-- **APK 9.0.1 build** with updater 6.25.6 + forced `androidx.work 2.9.1`: result pending at the time of writing. Check the latest *Build APK* run before telling the user it's ready.
+- APK minimum is now Android 6.0 (minSdk 23), required by the updater's dependencies.
 - **Not verified on a real device:** Camera/gallery plugin flow, Filesystem/Share save, and the actual self-update download/apply inside the APK (only tested with a mocked plugin). If the native camera call fails with a non-cancel error, the code falls back to the file input.
 - iOS IPA is unsigned and doesn't self-update (Capgo updater not added to iOS). Recommend the PWA on iOS.
 - Google Fonts need network on first load; the APK uses system fonts when offline.
@@ -182,7 +182,7 @@ cd /tmp/ghp && git add -A && git commit -m "Deploy KOPTAN vX.Y.Z" && git push or
 Then run the **Verify live site** workflow (GitHub Actions → `verify-pages.yml`, dispatch on the working branch) and read the log. The cloud sandbox can't reach `*.github.io` directly.
 
 ### Native builds (GitHub Actions, `workflow_dispatch`, publish a Release)
-- **Build APK** (`build-apk.yml`): Capacitor 6 + camera/filesystem/share + `@capgo/capacitor-updater@6.25.6`; forces `androidx.work 2.9.1`; permissions CAMERA, READ_MEDIA_IMAGES, READ_EXTERNAL_STORAGE(≤32); icon replaced; `versionName` = `APP_VER`, `versionCode` = 100 + run number; release-signed if `KEYSTORE_*` secrets exist, otherwise debug. Release tag `v<ver>-build-<n>`; direct link `https://github.com/Koptan919/Koptan/releases/download/<tag>/KOPTAN.apk`.
+- **Build APK** (`build-apk.yml`): Capacitor 6 + camera/filesystem/share + `@capgo/capacitor-updater@6.25.6`; forces `androidx.work 2.9.1`; minSdk 23; permissions CAMERA, READ_MEDIA_IMAGES, READ_EXTERNAL_STORAGE(≤32); icon replaced; `versionName` = `APP_VER`, `versionCode` = 100 + run number; release-signed if `KEYSTORE_*` secrets exist, otherwise debug. Release tag `v<ver>-build-<n>`; direct link `https://github.com/Koptan919/Koptan/releases/download/<tag>/KOPTAN.apk`.
 - **Build IPA** (`build-ipa.yml`): macOS, Capacitor iOS, Info.plist usage strings, unsigned `KOPTAN.ipa`, tag `ios-v<ver>-build-<n>`.
 - Rebuild native only when plugins or native config change. Web changes reach APK users through self-update.
 
