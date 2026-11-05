@@ -176,7 +176,7 @@ ${SW('vib',L('اهتزاز خفيف'),L('عند الحفظ والعمليات ا
 <h3 class="sh3">${L('الإشعارات')}</h3><section class="grp">${SW('nfStock',L('تنبيهات المخزون'),L('نفاد أو انخفاض الكمية، وسعر أقل من التكلفة'),S.k.nfStock!==false)}${SW('nfDebt',L('تذكير الديون'),L('قبل الاستحقاق بثلاثة أيام وعند التأخر'),S.k.nfDebt!==false)}${SW('nfBk',L('تذكير النسخ الاحتياطي'),L('إذا مرّ أسبوع بلا نسخة'),S.k.nfBk!==false)}${SR('nfOpen',LU.bell,L('مركز الإشعارات'),'')}</section>
 <h3 class="sh3">${L('البيانات')}</h3><section class="grp">${SR('dataOpen',LU.db,L('مركز البيانات'),L('آخر نسخة: {d}',{d:S.k.lastBk?day(S.k.lastBk):L('لم تؤخذ بعد')}))}${SR('bk',LU.dl,L('نسخة احتياطية الآن'),L('مع الصور'))}</section>
 <h3 class="sh3">${L('الأمان')}</h3><section class="grp">${SW('hide',L('إخفاء المبالغ'),L('تظهر المبالغ على شكل ••••'),!!S.k.hide)}${SR('pin',LU.lock,L('قفل التطبيق برمز PIN'),S.k.pin?L('مفعّل — حماية محلية على هذا الجهاز'):L('غير مفعّل'))}</section>
-<h3 class="sh3">${L('حول التطبيق')}</h3><section class="grp"><div class="about"><img src="icon-192.png" alt=""><div><b>KOPTAN</b><small>${L('مدير أعمالي')} · v${APP_VER} · Titanium Liquid Glass</small><small>${L('يعمل دون إنترنت، وكل البيانات محفوظة على هذا الجهاز فقط.')}</small></div></div></section>`},
+<h3 class="sh3">${L('حول التطبيق')}</h3><section class="grp">${SR('upd',LU.repl,L('التحقق من التحديثات'),L('الإصدار الحالي {v}',{v:APP_VER}))}<div class="about"><img src="icon-192.png" alt=""><div><b>KOPTAN</b><small>${L('مدير أعمالي')} · v${APP_VER} · Titanium Liquid Glass</small><small>${L('يعمل دون إنترنت، وكل البيانات محفوظة على هذا الجهاز فقط.')}</small></div></div></section>`},
 b(el){el.addEventListener('click',async e=>{const c=q=>e.target.closest(q);let b;
 if(b=c('[data-sw]')){const k=b.dataset.sw;if(k==='hide')S.k.hide=!S.k.hide;else if(k==='lite')S.k.lite=!S.k.lite;else S.k[k]=S.k[k]===false;await saveK();applyPrefs();buzz(6);refresh();return}
 if(b=c('[data-setcur]')){S.k.cur=b.dataset.setcur;await saveK();refresh();return}
@@ -191,6 +191,23 @@ b.querySelector('[data-n]').onclick=()=>closeEl(b);const r=b.querySelector('[dat
 b.querySelector('[data-s]').onclick=async()=>{const a=b.querySelector('[data-p1]').value,c=b.querySelector('[data-p2]').value;if(!/^\d{4,}$/.test(a)){warn(L('الرمز يجب أن يكون 4 أرقام على الأقل'));return}if(a!==c){warn(L('الرمزان غير متطابقين'));return}S.k.pin=await sha('pbm'+a);await saveK();closeEl(b);ok(L('تم تفعيل القفل ✓'));refresh()}}
 function lock(){const d=document.createElement('div');d.className='lockscr';d.innerHTML=`<div class="lk gl"><img src="icon-192.png" alt=""><h1>KOPTAN</h1><p>${L('أدخل رمز PIN')}</p><input data-lp type="password" inputmode="numeric" dir="ltr" autocomplete="off" aria-label="PIN"><button class="btn p wide" data-lb>${SV(LU.lock)}${L('فتح')}</button></div>`;document.body.append(d);const i=d.querySelector('[data-lp]');
 const chk=async()=>{if(await sha('pbm'+i.value)===S.k.pin){d.remove();buzz()}else{i.value='';i.classList.add('bad');setTimeout(()=>i.classList.remove('bad'),600);warn(L('رمز خاطئ'));buzz(60)}};d.querySelector('[data-lb]').onclick=chk;i.onkeydown=e=>e.key==='Enter'&&chk();setTimeout(()=>i.focus(),100)}
+
+
+/* =================== Android self-update (bundle downloaded from the live site; data & offline mode untouched) =================== */
+const UPD_URL='https://koptan919.github.io/Koptan/version.json';
+const newer=(a,b)=>{const x=String(a||'').split('.').map(n=>+n||0),y=String(b||'').split('.').map(n=>+n||0);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return(x[i]||0)>(y[i]||0)}return false};
+let updBusy=false,updAt=0;
+async function selfUpdate(manual){if(!hasPl('CapacitorUpdater')){if(manual)ok(L('هذه النسخة تتحدّث تلقائيًا عند فتحها مع الإنترنت ✓'));return}
+if(updBusy)return;if(!manual&&Date.now()-updAt<3600e3)return;updBusy=true;updAt=Date.now();let done=null;
+try{const r=await fetch(UPD_URL+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('http '+r.status);const j=await r.json();
+if(!j||!j.version||!j.zip||!newer(j.version,APP_VER)){if(manual)ok(L('لديك أحدث إصدار ({v}) ✓',{v:APP_VER}));return}
+if(manual)done=toastP(L('جارٍ تنزيل التحديث {v}…',{v:j.version}));
+const b=await capCall('CapacitorUpdater','download',{url:j.zip,version:j.version});done&&done();done=null;
+await capCall('CapacitorUpdater','next',{id:b.id});
+toast(L('التحديث {v} جاهز — يُطبَّق عند إعادة فتح التطبيق',{v:j.version}),'ok',{label:L('تحديث الآن'),icon:LU.repl,ms:12000,fn:()=>{if($('.pg .ft'))return confirmBox(L('لديك نموذج مفتوح. تطبيق التحديث الآن سيغلقه.'),()=>capCall('CapacitorUpdater','set',{id:b.id}),{danger:false,yes:L('تحديث الآن')});capCall('CapacitorUpdater','set',{id:b.id})}})}
+catch(e){console.warn('update',e);if(manual)warn(L('تعذر التحقق من التحديثات — تأكد من الاتصال بالإنترنت'))}
+finally{done&&done();updBusy=false}}
+ACT.upd=()=>selfUpdate(true);
 
 /* =================== REPORTS =================== */
 function repCmp(){if(per==='all')return'';const r=rng(),T=sod(),e=Math.min(r[1],T+864e5),len=e-r[0],pr=[r[0]-len,r[0]],c=AGG(r[0],e),p=AGG(pr[0],pr[1]);
@@ -284,12 +301,12 @@ addEventListener('resize',()=>setNav(tab==='arch'?'box':tab));
 addEventListener('error',e=>{if(e&&e.message&&!/ResizeObserver|Script error/i.test(e.message)){console.error(e.error||e.message);toast(L('حدث خطأ غير متوقع'),'w')}});
 addEventListener('unhandledrejection',e=>{console.error(e.reason);toast(L('تعذر تنفيذ العملية'),'w')});
 /* refresh time-dependent data (overdue debts, today's totals) when the app comes back to the foreground */
-let lastDay=sod();document.addEventListener('visibilitychange',()=>{if(!document.hidden&&sod()!==lastDay){lastDay=sod();refresh()}});
+let lastDay=sod();document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(sod()!==lastDay){lastDay=sod();refresh()}selfUpdate(false)});
 
 /* =================== boot =================== */
 buildChrome();$('#v').innerHTML='<div class="wrap"><div class="hero sk"></div><div class="kgrid"><div class="kpi sk"></div><div class="kpi sk"></div></div></div>';
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
-load().then(async()=>{applyPrefs();buildChrome();await migImgs();await migSup();await runRec();if(S.k.pin)lock();if(memOnly)warn(L('التخزين غير متاح هنا: البيانات مؤقتة'));render(true);sweepImgs();
+load().then(async()=>{applyPrefs();buildChrome();await migImgs();await migSup();await runRec();if(S.k.pin)lock();if(memOnly)warn(L('التخزين غير متاح هنا: البيانات مؤقتة'));render(true);sweepImgs();if(hasPl('CapacitorUpdater')){capCall('CapacitorUpdater','notifyAppReady').catch(()=>{});setTimeout(()=>selfUpdate(false),2500)}
 const od=S.d.filter(d=>!d.arch&&dRem(d)>0&&d.due&&d.due<sod());if(od.length)setTimeout(()=>toast(plural(od.length,'لديك {n} دين متأخر','لديك {n} ديون متأخرة'),'w'),900);
 const a=new URLSearchParams(location.search).get('a'),A={prod:addProduct,sale:()=>salePage(),exp:addExpense,debt:()=>debtPage()}[a];if(A&&!S.k.pin)setTimeout(()=>A(),300);document.body.classList.add('ready')});
 if('serviceWorker'in navigator&&/^https?:/.test(location.protocol)&&!NAT()){const hadCtl=!!navigator.serviceWorker.controller;navigator.serviceWorker.register('sw.js').then(r=>{r.addEventListener('updatefound',()=>{const w=r.installing;w&&w.addEventListener('statechange',()=>{if(w.state==='activated'&&hadCtl)toast(L('تم تحديث التطبيق إلى أحدث إصدار ✓'),'ok')})})}).catch(()=>{})}

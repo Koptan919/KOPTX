@@ -171,5 +171,9 @@ window.EN={
 'أضف منتجًا للمخزون':'Add a product to stock','بيع من المخزون':'Sell from stock','إيجار، شحن، إعلانات…':'Rent, shipping, ads…','لي أو عليّ مع الدفعات':'Owed to you or by you, with payments',
 'إضافة سريعة':'Quick add','الرئيسية':'Home','بحث':'Search','إضافة':'Add','التنقل':'Navigation','إظهار المبالغ':'Show amounts','حدث خطأ غير متوقع':'Something went wrong',
 'تعذر تنفيذ العملية':'Couldn’t complete the action','التخزين غير متاح هنا: البيانات مؤقتة':'Storage isn’t available here: data is temporary','لديك {n} دين متأخر':'You have {n} overdue debt',
-'لديك {n} ديون متأخرة':'You have {n} overdue debts','تم تحديث التطبيق إلى أحدث إصدار ✓':'App updated to the latest version ✓'
+'لديك {n} ديون متأخرة':'You have {n} overdue debts','تم تحديث التطبيق إلى أحدث إصدار ✓':'App updated to the latest version ✓',
+'هذه النسخة تتحدّث تلقائيًا عند فتحها مع الإنترنت ✓':'This version updates automatically when opened online ✓','لديك أحدث إصدار ({v}) ✓':'You’re on the latest version ({v}) ✓',
+'جارٍ تنزيل التحديث {v}…':'Downloading update {v}…','التحديث {v} جاهز — يُطبَّق عند إعادة فتح التطبيق':'Update {v} is ready — it applies when you reopen the app','تحديث الآن':'Update now',
+'لديك نموذج مفتوح. تطبيق التحديث الآن سيغلقه.':'You have a form open. Updating now will close it.','تعذر التحقق من التحديثات — تأكد من الاتصال بالإنترنت':'Couldn’t check for updates — check your internet connection',
+'التحقق من التحديثات':'Check for updates','الإصدار الحالي {v}':'Current version {v}',
 };

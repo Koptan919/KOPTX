@@ -1,7 +1,7 @@
 /* KOPTAN · مدير أعمالي — v9 Titanium Liquid Glass
    core: i18n, state, storage (IndexedDB "pbm" v5 — unchanged schema, fully compatible), formatting, UI primitives, images, files. */
 'use strict';
-const APP_VER='9.0.0';
+const APP_VER='9.0.1';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -134,10 +134,10 @@ function AGG(a,b){let rev=0,gp=0,ex=0,n=0;for(const x of S.s)if(x.date>=a&&x.dat
 /* ---------- feedback ---------- */
 const buzz=(n=12)=>{try{S.k.vib!==false&&navigator.vibrate&&navigator.vibrate(n)}catch(e){}};
 function toast(m,k='',act){$$('.toast:not(.ld)').forEach(x=>x.remove());const t=document.createElement('div');t.className='toast gl '+k;t.setAttribute('role','status');
-t.innerHTML=(k==='ok'?SV(LU.cok):k==='w'?SV(LU.warn):'')+'<span></span>'+(act?`<button class="tbtn">${SV(LU.undo)}<b></b></button>`:'');t.querySelector('span').textContent=String(m);
+t.innerHTML=(k==='ok'?SV(LU.cok):k==='w'?SV(LU.warn):'')+'<span></span>'+(act?`<button class="tbtn">${SV(act.icon||LU.undo)}<b></b></button>`:'');t.querySelector('span').textContent=String(m);
 let gone=false;const out=()=>{if(gone)return;gone=true;t.classList.add('out');setTimeout(()=>t.remove(),220);act&&act.end&&act.end()};
 if(act){t.querySelector('b').textContent=act.label;t.querySelector('.tbtn').onclick=()=>{if(gone)return;gone=true;t.remove();act.fn()}}
-document.body.append(t);setTimeout(out,act?6500:2600);return t}
+document.body.append(t);setTimeout(out,act?(act.ms||6500):2600);return t}
 const ok=m=>toast(m,'ok'),warn=m=>toast(m,'w');
 function toastP(m){const t=document.createElement('div');t.className='toast gl ld';t.innerHTML='<i class="spin"></i><span></span>';t.lastChild.textContent=m;document.body.append(t);return()=>t.remove()}
 
