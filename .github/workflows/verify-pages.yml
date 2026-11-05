@@ -6,7 +6,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Install Playwright
         run: |
           npm init -y >/dev/null
@@ -20,12 +20,13 @@ jobs:
           (async()=>{const b=await chromium.launch();const ctx=await b.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const p=await ctx.newPage();
           const errs=[];p.on('pageerror',e=>errs.push(e.message));const R=[];const ok=(c,m)=>{R.push((c?'PASS ':'FAIL ')+m);if(!c)process.exitCode=1};
           await p.goto(URL,{waitUntil:'networkidle'});await p.waitForSelector('body.ready',{timeout:20000});
-          ok(await p.evaluate(()=>typeof APP_VER!=='undefined'&&APP_VER)==='9.0.0','live version is 9.0.0');
+          const live=await p.evaluate(()=>APP_VER);const vj=await (await fetch(URL+'version.json?t='+Date.now())).json();ok(vj.version===live,'version.json ('+vj.version+') matches live app ('+live+')');
+          const zr=await fetch(vj.zip);const zb=Buffer.from(await zr.arrayBuffer());ok(zr.ok&&zb.slice(0,2).toString()==='PK'&&zb.includes('index.html')&&zb.includes('core.js'),'Android update bundle downloadable ('+zb.length+' bytes)');
           ok(await p.locator('#nav button').count()===5,'navigation rendered');
           await p.waitForFunction(()=>navigator.serviceWorker&&navigator.serviceWorker.controller,null,{timeout:20000}).catch(()=>{});
           await p.reload({waitUntil:'networkidle'});await p.waitForSelector('body.ready');
           ok(await p.evaluate(()=>!!navigator.serviceWorker.controller),'service worker controls the page');
-          ok(await p.evaluate(async()=>(await caches.keys()).includes('koptan-v9.0.0')),'v9 cache installed');
+          ok(await p.evaluate(async()=>(await caches.keys()).includes('koptan-v'+APP_VER)),'current cache installed');
           await p.click('#fab');await p.waitForTimeout(400);await p.click('.sheet.qa [data-a=p]');await p.waitForTimeout(500);
           const pg=p.locator('.pg').last();await pg.locator('[name=name]').fill('Live check');await pg.locator('[name=price]').fill('9');await pg.locator('#sv').click();await p.waitForTimeout(800);
           await p.reload();await p.waitForSelector('body.ready');ok(await p.evaluate(()=>S.p.some(x=>x.name==='Live check')),'product saved and survives reload');
