@@ -1,7 +1,7 @@
 # KOPTAN · مدير أعمالي — Project memory
 
 > Detailed, persistent context for future development sessions. The concise rules are in [CLAUDE.md](CLAUDE.md).
-> Last updated: 2026-11-05 · App version **9.0.1** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
+> Last updated: 2026-11-06 · App version **9.0.2** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
 
 ---
 
@@ -146,6 +146,12 @@ Rules:
 - APK build fixes: updater 6.53.0 needed compileSdk 35 → pinned **6.25.6**; that still pulls `androidx.work 2.11.0` (needs SDK 35 / AGP 8.6) → workflow appends `resolutionStrategy.force "androidx.work:work-runtime:2.9.1"` to `android/build.gradle`. That still failed: play-services-tasks needs minSdk 23 → workflow sets `minSdkVersion = 23` (Android 6.0+). **Build APK run #7 succeeded** → release `v9.0.1-build-7` (debug-signed).
 - Moved the test suite from a temporary folder into `tests/` (+ `tests/run.sh`, `tests/fixtures/v8`). Fixed a timing race in test O1.
 
+### 2026-11-06: v9.0.2 PIN fix + more transparent glass
+- **PIN bug:** Arabic Android keyboards type Arabic-Indic digits (٠-٩), so a correct PIN was rejected and setting a PIN failed the 4-digit check. Fix: `normD()` in core.js (Arabic-Indic/Persian → Latin) when setting a PIN. The lock screen is now an on-screen glass keypad (`.pin-dots`, `.pad`, `.pk`), so it doesn't depend on the system keyboard: auto-unlocks once the hash matches, backspace, shake + clear on wrong PIN, hardware keyboard digits work. PINs saved by older versions with Arabic digits still unlock (it tries Latin/Arabic-Indic/Persian forms).
+- **Glass:** `--glass` lighter; cards get `backdrop-filter: blur(12px) saturate(150%)` + brighter top edge; `--float` .6→.34; sheets .78→.5; ambient glows stronger. `.lite` turns blur off on all cards and uses an opaque-ish fill.
+- Verified: `tests/run.sh shots` all green (42/42 incl. new PIN cases, self-update, SW upgrade, no overflow at 320/360/412). Full-glass screenshots reviewed (headless Chromium auto-enables `.lite`, so they need `S.k.lite=false`). Live check 9/9 PASS (version.json 9.0.2, bundle 230 KB).
+- Tests: `upd.js` now derives versions from `APP_VER`; Q1 covers keypad, wrong PIN, keyboard, legacy Arabic-digit PIN, and setting a PIN with Arabic digits.
+
 ---
 
 ## 8. Known issues / pending
@@ -157,6 +163,8 @@ Rules:
 - Google Fonts need network on first load; the APK uses system fonts when offline.
 - Arabic plural forms are simplified (singular for 1, plural otherwise).
 - Avatars use the first letter of user names (data, not translated).
+- Headless test browsers report few CPU cores, so `autoLite()` turns on performance mode. Set `S.k.lite=false` before taking design screenshots.
+- Soft-keyboard input of Arabic digits on the lock screen isn't testable in Playwright (it inserts text with no key event). Irrelevant now that the keypad is used.
 - Pending ideas (not requested yet): bundle the font locally; delta updates; iOS self-update.
 
 ---
