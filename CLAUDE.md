@@ -1,4 +1,4 @@
-# KOPTAN · مدير أعمالي — instructions for Claude
+# KOPT X (formerly KOPTAN) · مدير أعمالي — instructions for Claude
 
 Offline-first personal business manager (stock, sales, expenses, debts, suppliers). Vanilla JS, no build step, no framework.
 Ships as: a PWA on GitHub Pages (https://koptan919.github.io/Koptan/), an Android APK (Capacitor 6, self-updating), and an unsigned iOS IPA.
@@ -12,6 +12,7 @@ Ships as: a PWA on GitHub Pages (https://koptan919.github.io/Koptan/), an Androi
 - Keep the Titanium × Burgundy Liquid Glass look (tokens at the top of `app.css`). Keep `.lite` (performance mode) working: no live `backdrop-filter` there.
 - **APK signing key is permanent.** `signing/koptan.jks.enc` (AES-256, password = secret `KEYSTORE_PASSWORD`) + `signing/fingerprint-sha256.txt`. Never delete, regenerate or replace them. A new key means no APK can install over the user's app again. Never print or log the password.
 - Performance: derived data goes through `memo()` (invalidated by `DV`, bumped in `put`/`del`). Format numbers/dates with the cached `NF0/NF2/DF` and only for rows actually shown. No live `backdrop-filter` on cards (only floating layers).
+- The app is called **KOPT X** in the UI. Internal ids keep the old name and must not change: appId `com.koptan.app`, IndexedDB `pbm`, SW cache `koptan-v*`, backup `app:'KOPTAN'`, `koptan-<ver>.zip`, `KOPTAN.apk`.
 - Make the smallest change that does the job. Don't reformat or restructure files you aren't changing.
 
 ## Layout

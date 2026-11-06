@@ -24,7 +24,7 @@ jobs:
           cd app
           npm init -y
           npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/camera@6 @capacitor/filesystem@6 @capacitor/share@6 @capacitor/local-notifications@6.1.3 @capacitor/haptics@6.0.3 @capacitor/app@6.0.3 @capgo/capacitor-updater@6.25.6 @capgo/capacitor-native-biometric@6.0.4
-          npx cap init KOPTAN com.koptan.app --web-dir www
+          npx cap init "KOPT X" com.koptan.app --web-dir www
           # self-update in manual mode: the app checks version.json on the live site; no third-party update server or stats
           node -e "const f='capacitor.config.json',c=require('./'+f);c.backgroundColor='#0b0c0f';c.android={backgroundColor:'#0b0c0f'};c.plugins={CapacitorUpdater:{autoUpdate:false,statsUrl:'',appReadyTimeout:15000,resetWhenUpdate:true}};require('fs').writeFileSync(f,JSON.stringify(c,null,2))"
           npx cap add android
@@ -36,7 +36,7 @@ jobs:
           sed -i 's/minSdkVersion = 22/minSdkVersion = 23/' android/variables.gradle
           grep -q 'minSdkVersion = 23' android/variables.gradle
           printf '\nallprojects {\n    configurations.all {\n        resolutionStrategy.force "androidx.work:work-runtime:2.9.1"\n    }\n}\n' >> android/build.gradle
-          # launcher icon: Titanium x Burgundy
+          # launcher icon: KOPT X
           RES=android/app/src/main/res
           rm -rf $RES/mipmap-anydpi-v26
           for d in $RES/mipmap-*; do cp www/icon-192.png $d/ic_launcher.png; cp www/icon-192.png $d/ic_launcher_round.png; cp www/icon-192.png $d/ic_launcher_foreground.png; done
@@ -81,5 +81,5 @@ jobs:
         run: |
           TAG="v$VER-build-${{ github.run_number }}"
           gh release create "$TAG" KOPTAN.apk --repo "${{ github.repository }}" --target "${{ github.sha }}" \
-            --title "KOPTAN $VER (build ${{ github.run_number }})" \
+            --title "KOPT X $VER (build ${{ github.run_number }})" \
             --notes "Titanium Liquid Glass edition, with automatic in-app updates. APK file: KOPTAN.apk — signing: $SIGNING" --latest

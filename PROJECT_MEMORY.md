@@ -1,7 +1,7 @@
-# KOPTAN · مدير أعمالي — Project memory
+# KOPT X (formerly KOPTAN) · مدير أعمالي — Project memory
 
 > Detailed, persistent context for future development sessions. The concise rules are in [CLAUDE.md](CLAUDE.md).
-> Last updated: 2026-11-06 · App version **9.4.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
+> Last updated: 2026-11-06 · App version **9.5.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
 
 ---
 
@@ -223,6 +223,13 @@ Rules:
 - Deployed 9.4.0; *Verify live site* run (id 42277102882) all PASS (version.json 9.4.0, bundle 338 KB).
 - **Needs a new APK** for the back button (native plugin). The web part (what's new) arrives by self-update.
 
+### 2026-11-06: v9.5.0 rebrand to KOPT X + new icon
+- The owner sent a new icon (white K with a burgundy stroke on near-black, 1024²) and a wordmark “KOPT X — Business Manager”, and chose **icon + rename to KOPT X**.
+- `icon-192.png` / `icon-512.png` regenerated from the owner's 1024² PNG (PIL LANCZOS). Used by the PWA, favicon/apple-touch, lock screen, settings store card, About, the invoice image, the APK launcher and the iOS icon (both workflows copy them).
+- Visible name → **KOPT X**: `<title>`, meta description, manifest `name`/`short_name`, header (`#ttl` on Home = `KOPT <i class="tx">X</i>`, X in the `--burg` gradient), lock screen, About, More footer, default store name (`S.k.biz||'KOPT X'`) in invoice/WhatsApp text/daily summary/supplier order, invoice footer, biometric prompt titles, WebAuthn rp name/displayName (existing credentials still work: rpId unchanged), backup error text. APK/IPA `cap init "KOPT X"` (launcher label; needs a new APK build).
+- **Kept on purpose (internal ids, do not rename):** appId `com.koptan.app`, IndexedDB `pbm`, `localStorage koptan.lang`, SW cache `koptan-v*`, backup field `app:'KOPTAN'`, update zip `koptan-<ver>.zip`, `KOPTAN.apk`/`.ipa` asset names, repo/URL `Koptan`, WebAuthn user name `koptan`. Changing the appId would stop APK updates.
+- `CHANGES` entry 9.5.0. Verified: `tests/run.sh shots` green (e2e 42/42, features 24/24, self-update, web auto-update, SW upgrade, no overflow). One run hit a timeout in the SW-upgrade offline reopen; 3 isolated reruns + a full rerun passed (timing flake, not caused by this change). Screenshots of home (AR), lock (EN) and invoice reviewed.
+
 ---
 
 ## 8. Known issues / pending
@@ -238,6 +245,8 @@ Rules:
 - **v9.1 native parts not verified on a real phone:** NativeBiometric prompt, LocalNotifications daily notification, camera barcode scanning inside the Android WebView (BarcodeDetector support in WebView is uncertain; manual entry is the fallback), invoice image sharing via the Share plugin.
 - Native features (fingerprint, daily notification, native haptics) need an APK built after they were added (haptics: v9.2.0+). Web features arrive by self-update. Haptics on a real phone are not verified yet.
 - **Back button in the APK needs an APK built from 9.4.0+** (adds `@capacitor/app`); older APKs keep closing on Back. Not yet tested on a real phone (only with a mocked plugin).
+- The APK launcher name/icon change to KOPT X only with a new APK build; the web layer (header, invoice, icons inside the app) arrives by self-update.
+- `tests/sw-upgrade.js` offline reopen can time out occasionally (seen once in 9.5.0); rerun before investigating.
 - Pending ideas: delta updates; iOS self-update; ML Kit barcode plugin if WebView lacks BarcodeDetector.
 
 ---

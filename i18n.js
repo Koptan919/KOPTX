@@ -132,7 +132,7 @@ window.EN={
 'تُفحص سلامة الملف وتُعرض محتوياته قبل الاستعادة. لن يُستبدل شيء دون تأكيدك.':'The file is checked and its contents previewed before restoring. Nothing is replaced without your confirmation.',
 'تصدير جداول CSV':'Export CSV tables','سجل النشاط':'Activity log','لا نشاط':'No activity','استعادة نسخة احتياطية':'Backup restored','مهمة: ':'Task: ','الخصم':'Discount','المبلغ ($)':'Amount ($)',
 'النوع':'Type','العملة':'Currency','جارٍ تجهيز النسخة الاحتياطية…':'Preparing backup…','تم إنشاء النسخة الاحتياطية (شاملة الصور) ✓':'Backup created (including photos) ✓','تعذر إنشاء النسخة':'Couldn’t create the backup',
-'الملف ليس ملف نسخة احتياطية صالحًا (JSON تالف)':'This isn’t a valid backup file (damaged JSON)','الملف لا يحتوي على بيانات KOPTAN':'The file doesn’t contain KOPTAN data',
+'الملف ليس ملف نسخة احتياطية صالحًا (JSON تالف)':'This isn’t a valid backup file (damaged JSON)','الملف لا يحتوي على بيانات KOPT X':'The file doesn’t contain KOPTAN data',
 '{n} منتج غير صالح':'{n} invalid product(s)','{n} بيع غير صالح':'{n} invalid sale(s)','{n} مصروف غير صالح':'{n} invalid expense(s)','{n} دين غير صالح':'{n} invalid debt(s)','{n} صورة تالفة':'{n} damaged photo(s)',
 'الملف كبير جدًا':'The file is too large','جارٍ فحص الملف…':'Checking the file…','حسنًا':'OK','سليم — تم التحقق من التوقيع الرقمي للملف':'Intact — the file’s checksum was verified',
 'تحذير: محتوى الملف لا يطابق توقيعه — ربما عُدّل أو تلف':'Warning: the file doesn’t match its checksum — it may have been edited or damaged',
@@ -225,7 +225,7 @@ window.EN={
 "التقارير":"Reports",
 "تم النسخ ✓":"Copied ✓",
 "اسمح للتطبيق بالإشعارات من إعدادات الهاتف":"Allow notifications for the app in your phone settings",
-"ملخص اليوم — KOPTAN":"Today’s summary — KOPTAN",
+"ملخص اليوم — KOPT X":"Today’s summary — KOPT X",
 "اضغط لعرض مبيعات وأرباح اليوم":"Tap to see today’s sales and profit",
 "شكرًا لتعاملكم":"Thank you for your business",
 "فاتورة Invoice 123":"فاتورة Invoice 123",
@@ -275,7 +275,7 @@ window.EN={
 "منتج جديد بهذا الباركود":"New product with this barcode",
 "بصمة الإصبع أو الوجه بدل كتابة الرمز — الرمز يبقى احتياطيًا":"Fingerprint or face instead of typing the PIN — the PIN stays as a backup",
 "فعّل رمز PIN أولًا":"Turn on the PIN lock first",
-"افتح KOPTAN":"Unlock KOPTAN",
+"افتح KOPT X":"Unlock KOPT X",
 "استخدم البصمة لفتح التطبيق":"Use your fingerprint to open the app",
 "استخدم الرمز":"Use PIN",
 "تم إيقاف الدخول بالبصمة":"Fingerprint unlock turned off",
@@ -351,5 +351,5 @@ window.EN={
 "هل شعرت بالاهتزاز؟ إن لم تشعر به، ارفع الشدة أو فعّل اهتزاز اللمس في إعدادات الهاتف":"Did you feel it? If not, raise the strength or turn on touch vibration in your phone settings",
 "سجّل عملية بيع أولًا لمعاينة الفاتورة":"Record a sale first to preview the invoice",
 /* v9.4 */
-"إشعارات التحديثات":"Update notifications","ما الجديد عند كل تحديث":"What's new after every update","ما الجديد":"What's new","سجل التحديثات وما تغيّر في كل إصدار":"Update history and what changed in each version","اضغط رجوع مرة أخرى للخروج":"Press back again to exit","ما الجديد في الإصدار {v}":"What's new in version {v}","إشعار «ما الجديد» يظهر بعد كل تحديث":"A “What's new” notification after every update","زر الرجوع في الهاتف يعود إلى الشاشة السابقة بدل الخروج":"The phone's back button returns to the previous screen instead of closing the app","اضغط رجوع مرتين في الرئيسية للخروج من التطبيق":"Press back twice on Home to exit the app","الفاتورة بتصميم داكن احترافي":"Professional dark invoice design","المبالغ والخصم تظهر بالاتجاه الصحيح في الفاتورة":"Amounts and discount show the right way round on the invoice","فاتورة احترافية بترقيم تسلسلي وحالة الدفع":"Professional invoice with sequential numbers and payment status","اهتزاز أوضح مع اختيار القوة وزر تجربة":"Stronger vibration with a strength setting and a test button","تصميم جديد للإعدادات":"Redesigned settings","التطبيق أسرع وأخف بكثير":"The app is much faster and lighter","اهتزاز خفيف عند اللمس":"Light vibration on touch","تم التحديث إلى الإصدار {v}":"Updated to version {v}","الإصدار {v}":"Version {v}"
+"إشعارات التحديثات":"Update notifications","ما الجديد عند كل تحديث":"What's new after every update","ما الجديد":"What's new","سجل التحديثات وما تغيّر في كل إصدار":"Update history and what changed in each version","اضغط رجوع مرة أخرى للخروج":"Press back again to exit","ما الجديد في الإصدار {v}":"What's new in version {v}","إشعار «ما الجديد» يظهر بعد كل تحديث":"A “What's new” notification after every update","زر الرجوع في الهاتف يعود إلى الشاشة السابقة بدل الخروج":"The phone's back button returns to the previous screen instead of closing the app","اضغط رجوع مرتين في الرئيسية للخروج من التطبيق":"Press back twice on Home to exit the app","الفاتورة بتصميم داكن احترافي":"Professional dark invoice design","المبالغ والخصم تظهر بالاتجاه الصحيح في الفاتورة":"Amounts and discount show the right way round on the invoice","فاتورة احترافية بترقيم تسلسلي وحالة الدفع":"Professional invoice with sequential numbers and payment status","اهتزاز أوضح مع اختيار القوة وزر تجربة":"Stronger vibration with a strength setting and a test button","تصميم جديد للإعدادات":"Redesigned settings","التطبيق أسرع وأخف بكثير":"The app is much faster and lighter","اهتزاز خفيف عند اللمس":"Light vibration on touch","تم التحديث إلى الإصدار {v}":"Updated to version {v}","الإصدار {v}":"Version {v}","هوية جديدة: الاسم KOPT X وأيقونة جديدة":"New identity: the KOPT X name and a new icon"
 };
