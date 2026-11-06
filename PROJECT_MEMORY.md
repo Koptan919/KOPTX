@@ -239,7 +239,7 @@ Rules:
 ### 2026-11-06: v9.6.0 biometric option named after the device (face / fingerprint)
 - The owner wanted to choose face or fingerprint. Not possible: Android's BiometricPrompt and iOS pick the method themselves (an app can't request face or fingerprint specifically). Agreed instead: name the option after what the phone uses.
 - `extra.js`: `BIOT` / persisted `S.k.bioT` = `'face'|'finger'|'any'`. Native: `NativeBiometric.isAvailable().biometryType` 1,3 → finger; 2,4 → face; anything else (6 = multiple, 5 = iris) → any. Web: `webBioKind()` heuristic (iPhone with a screen of 812 px or more → face, other iPhone or Mac → finger, iPad and the rest → any). `bioName()` / `bioIcon()` (new Lucide `LU.face` = scan-face in core.js) drive the settings row title and subtitle, the lock-screen button (updated once `bioAvail` resolves), prompt subtitles and toasts. Unlocking itself is unchanged.
-- Verified: new F25 (native mock, types 2/4/3/6: settings row, enable toast, lock button, unlock by the prompt), `tests/run.sh shots` green (e2e 42/42, features 25/25, self-update, SW upgrade, no overflow). F21 no longer hard-codes versions (it failed only because 9.3.1 dropped off the 3-item list). Screenshots of the face case reviewed. Web-layer only: works with APK build 10/11.
+- Verified: new F25 (native mock, types 2/4/3/6: settings row, enable toast, lock button, unlock by the prompt), `tests/run.sh shots` green (e2e 42/42, features 25/25, self-update, SW upgrade, no overflow). F21 no longer hard-codes versions (it failed only because 9.3.1 dropped off the 3-item list). Screenshots of the face case reviewed. Web-layer only: works with APK build 10/11. Deployed 9.6.0; *Verify live site* run 42305901223 all PASS.
 
 ---
 
