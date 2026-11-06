@@ -1,7 +1,7 @@
 # KOPTAN · مدير أعمالي — Project memory
 
 > Detailed, persistent context for future development sessions. The concise rules are in [CLAUDE.md](CLAUDE.md).
-> Last updated: 2026-11-06 · App version **9.2.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
+> Last updated: 2026-11-06 · App version **9.3.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
 
 ---
 
@@ -193,6 +193,21 @@ Rules:
 - Verified: `tests/run.sh shots` all green (e2e 42/42, features 18/18 incl. new F18 haptics with a mocked plugin, self-update, web auto-update, SW upgrade, no overflow).
 - Deployed 9.2.0; *Verify live site* run #6 success. **Build APK run #9 succeeded** → release `v9.2.0-build-9` (debug-signed; includes Haptics, NativeBiometric, LocalNotifications, Camera, Filesystem, Share, CapacitorUpdater).
 
+### 2026-11-06: v9.3.0 professional invoice, working haptics, settings redesign
+- **Invoice** (`extra.js` › `invImage/invText/invNo/invInfo`):
+  - White-paper layout: burgundy edge bars, logo + store name/phone/address, title + number + date/time, “billed to” (or walk-in customer).
+  - Payment-status pill: paid / partially paid / unpaid (from the linked debt), payment method, items table (# / item / qty / unit price / amount), totals box (subtotal, discount, burgundy total band, paid, remaining), optional sale note, custom footer (`S.k.invNote`), tax no. (`S.k.bizTax`).
+  - **Sequential numbers** `INV-00001`: optional field `s.inv`, counter `S.k.invN`; assigned once per sale.
+  - WhatsApp text uses *bold*.
+- **Haptics:** web pulses were 5–14 ms, which many phones ignore → now 12–45 ms × strength. New strength setting `S.k.vibLv` (l/m/h) maps to native impact styles (heavy is always HEAVY). `hapInfo()` tells native / web / oldapk / ios / none; Settings › “تجربة الاهتزاز” vibrates and explains if unsupported. Reasons a user may feel nothing: an APK older than 9.2.0 (no plugin, no VIBRATE permission) or iPhone Safari (no Vibration API). The native plugin uses the Vibrator directly (LIGHT 50 ms amp 110), not the system touch-feedback setting.
+- **Settings redesigned:**
+  - Store card + edit button at the top.
+  - Every row has an icon tile (`SIc`, `SWI`, `SVR`, `SSG`, `SRI` helpers in more.js).
+  - Values open edit sheets (`EDIT` + `editK` in extra.js; numbers accept Arabic digits/decimal `٫` via `numIn`).
+  - New sections: Invoice, Currency & goals, Look & feel. Rows wrap at 320px.
+- New optional settings: `bizAddr, bizTax, invNote, invN, vibLv`.
+- Verified: `tests/run.sh shots` → e2e 42/42, features 20/20 (new F19 invoice numbering/status/footer, F20 strength + old-APK diagnosis; F2/F14 use the edit sheets), self-update, web auto-update, SW upgrade, no overflow. Invoice and settings screenshots reviewed. Deployed 9.3.0; *Verify live site* run #7 success. No APK rebuild needed (haptics plugin already in APK 9.2.0-build-9).
+
 ---
 
 ## 8. Known issues / pending
@@ -215,7 +230,7 @@ Rules:
 
 ### Test locally (needs Node + Playwright/Chromium; this cloud environment has them preinstalled)
 ```bash
-tests/run.sh          # 42 e2e checks + self-update (mocked native) + 18 feature checks + SW upgrade from the pre-v9 app
+tests/run.sh          # 42 e2e checks + self-update (mocked native) + 20 feature checks + SW upgrade from the pre-v9 app
 node tests/perf.js    # large-dataset timings (needs the run.sh server on :8123); compare before/after performance work
 tests/run.sh shots    # + screenshots of every screen (320/412 ar, 360 en) and horizontal-overflow check
 node --check core.js views.js more.js i18n.js sw.js
