@@ -120,7 +120,8 @@ return`<div class="note">${SV(LU.info)}${L('يُحسب الاقتراح من م�
 b(el){el.addEventListener('click',e=>{const b=e.target.closest('[data-send]');if(b)orderSend(b.closest('.og'),b.dataset.send)})}};
 ACT.supOrder=id=>{const sp=spOf(id);if(!sp)return;const sug=new Map(reorderList().map(r=>[r.p.id,r]));const rows=spProds(id).filter(p=>!p.arch).map(p=>sug.get(p.id)||{p,v:velocity(p),left:Infinity,sug:1,none:1}).sort((a,b)=>(a.none||0)-(b.none||0));
 if(!rows.length)return warn(L('لا منتجات لهذا المورد'));const b=sheet(`<h2 class="sh-h">${L('طلبية من {n}',{n:sp.name})}</h2>`+orderGroup(sp,rows,false).replace(/data-pid="([^"]+)"/g,(m,pid)=>sug.has(pid)?m+' checked':m),'tall');b.addEventListener('click',e=>{const x=e.target.closest('[data-send]');if(x)orderSend(x.closest('.og'),x.dataset.send)})};
-const _nfAll0=nfAll;nfAll=function(){return memo('nf',nfAll1).slice()};function nfAll1(){const R=_nfAll0();if(S.k.nfStock!==false)reorderList().forEach(r=>{if(r.p.qty>r.p.min&&isFinite(r.left))R.push({id:'r:'+r.p.id+':'+Math.ceil(r.left),k:'stock',lv:'o',t:L('قارب على النفاد: {n}',{n:r.p.name}),s:L('{l} — اقتراح طلب {q}',{l:leftTxt(r),q:r.sug}),a:['s','reo']})});return R}
+const _nfAll0=nfAll;nfAll=function(){return memo('nf',nfAll1).slice()};function nfAll1(){const R=_nfAll0();if(S.k.nfStock!==false)reorderList().forEach(r=>{if(r.p.qty>r.p.min&&isFinite(r.left))R.push({id:'r:'+r.p.id+':'+Math.ceil(r.left),k:'stock',lv:'o',t:L('قارب على النفاد: {n}',{n:r.p.name}),s:L('{l} — اقتراح طلب {q}',{l:leftTxt(r),q:r.sug}),a:['s','reo']})});
+if(S.k.nfUpd!==false)(S.k.updN||[]).forEach(v=>{const c=CHANGES.find(x=>x.v===v);if(c)R.push({id:'u:'+v,k:'upd',lv:'g',t:L('ما الجديد في الإصدار {v}',{v}),s:c.n.map(x=>L(x)).join(' · '),a:['s','upd']})});return R}
 
 /* =================== barcode scanning (camera via BarcodeDetector, manual entry fallback) =================== */
 async function scanCode(cb){const b=sheet(`<h2 class="sh-h">${SV(LU.scan)} ${L('مسح الباركود')}</h2><div class="scanv"><video playsinline muted autoplay></video><i class="scanl"></i></div><p class="sub" data-msg>${L('وجّه الكاميرا نحو الباركود')}</p><div class="fl"><label>${L('أو اكتب الرقم يدويًا')}</label><div class="sb"><input data-man dir="ltr" inputmode="numeric" autocomplete="off"><button class="btn p" data-ok>${L('تم')}</button></div></div>`);
@@ -169,7 +170,23 @@ if(k==='sumT'){const[h,m]=v.split(':').map(Number);if(isFinite(h)){S.k.sumH=h;S.
 if(t.hasAttribute('data-num')){v=+normD(v)||0;if(v<0){warn(L('أدخل رقمًا صحيحًا'));return}if(k==='lead')v=Math.min(60,Math.max(1,Math.round(v)||7))}
 S.k[k]=v;await saveK();ok(L('تم الحفظ ✓'));refresh()});
 document.addEventListener('click',async e=>{const b=e.target.closest&&e.target.closest('[data-abk]');if(b){S.k.abk=b.dataset.abk;await saveK();refresh();return}if(e.target.closest&&e.target.closest('[data-sw="sumOn"]'))setTimeout(scheduleSum,80)});
-function afterBoot(){bioAvail();autoBackup().catch(e=>console.warn(e));scheduleSum();
+/* =================== what's new: one notification per installed update =================== */
+/* newest first; add an entry with every release (Arabic source, EN in i18n.js) */
+const CHANGES=[
+{v:'9.4.0',d:'2026-11-06',n:['إشعار «ما الجديد» يظهر بعد كل تحديث','زر الرجوع في الهاتف يعود إلى الشاشة السابقة بدل الخروج','اضغط رجوع مرتين في الرئيسية للخروج من التطبيق']},
+{v:'9.3.1',d:'2026-11-06',n:['الفاتورة بتصميم داكن احترافي','المبالغ والخصم تظهر بالاتجاه الصحيح في الفاتورة']},
+{v:'9.3.0',d:'2026-11-06',n:['فاتورة احترافية بترقيم تسلسلي وحالة الدفع','اهتزاز أوضح مع اختيار القوة وزر تجربة','تصميم جديد للإعدادات']},
+{v:'9.2.0',d:'2026-11-06',n:['التطبيق أسرع وأخف بكثير','اهتزاز خفيف عند اللمس']}];
+/* runs once per version: queues the notes of every version installed since the last run (only the current one on a first run) */
+function updSeen(){const lv=S.k.lastVer;if(lv===APP_VER)return;const nv=CHANGES.filter(c=>!newer(c.v,APP_VER)&&(lv?newer(c.v,lv):c.v===APP_VER)).map(c=>c.v);
+S.k.updN=[...new Set([...nv,...(S.k.updN||[])])].filter(v=>CHANGES.some(c=>c.v===v)).sort((a,b)=>newer(a,b)?-1:1).slice(0,3);S.k.lastVer=APP_VER;
+S.k.nt=S.k.nt||{};const now=Date.now();nv.slice().sort((a,b)=>newer(a,b)?-1:1).forEach((v,i)=>S.k.nt['u:'+v]=now-i*1000);/* newest version first in the center */
+saveK().then(()=>{nfBadge();refreshPages()}).catch(()=>{});if(lv&&newer(APP_VER,lv)&&S.k.nfUpd!==false&&nv.length)setTimeout(()=>toast(L('تم التحديث إلى الإصدار {v}',{v:APP_VER}),'ok',{label:L('ما الجديد'),icon:LU.spark,fn:()=>openSub('upd'),ms:8000}),900)}
+SUBS.upd={t:'ما الجديد',f(){return CHANGES.filter(c=>!newer(c.v,APP_VER)).map(c=>`<section class="sec chg"><h3>${SV(LU.spark)}${L('الإصدار {v}',{v:c.v})}${c.v===APP_VER?`<span class="pill">${L('الحالي')}</span>`:''}<small>${day(new Date(c.d+'T12:00:00').getTime())}</small></h3><ul class="chl">${c.n.map(x=>`<li>${esc(L(x))}</li>`).join('')}</ul></section>`).join('')}};
+ACT.whatsNew=()=>openSub('upd');
+
+function afterBoot(){bioAvail();autoBackup().catch(e=>console.warn(e));scheduleSum();updSeen();
+if(hasPl('App')){try{Capacitor.Plugins.App.addListener('backButton',()=>{if(backTop())return;backRoot(true)})}catch(e){console.warn(e)}}
 if(hasPl('LocalNotifications')){try{Capacitor.Plugins.LocalNotifications.addListener('localNotificationActionPerformed',a=>{const x=a&&a.notification&&a.notification.extra;if(x&&x.go==='daySum')setTimeout(()=>ACT.daySum(),400)})}catch(e){}}}
 
 /* =================== settings: edit sheets, vibration test, invoice preview =================== */

@@ -86,7 +86,7 @@ return R}
 /* first-seen time of each notification is stored so the date & time stay stable */
 function nfCur(){const nr=new Set(S.k.nr||[]),nd=new Set(S.k.nd||[]),A=nfAll(),now=Date.now();let ch=false;S.k.nt=S.k.nt||{};A.forEach(n=>{if(!S.k.nt[n.id]){S.k.nt[n.id]=now;ch=true}});
 const live=new Set(A.map(n=>n.id));for(const k in S.k.nt)if(!live.has(k)){delete S.k.nt[k];ch=true}if(ch)saveKSoon();
-const o={r:0,o:1,b:2};return A.filter(n=>!nd.has(n.id)).map(n=>({...n,r:nr.has(n.id),at:S.k.nt[n.id]})).sort((a,b)=>a.r-b.r||o[a.lv]-o[b.lv]||b.at-a.at)}
+const o={r:0,o:1,b:2,g:3};return A.filter(n=>!nd.has(n.id)).map(n=>({...n,r:nr.has(n.id),at:S.k.nt[n.id]})).sort((a,b)=>a.r-b.r||o[a.lv]-o[b.lv]||b.at-a.at)}
 const nfUn=()=>nfCur().filter(n=>!n.r).length;
 function nfBadge(){const b=$('#nb');if(!b)return;const n=nfUn();b.innerHTML=SV(LU.bell)+(n?`<i class="nbd">${n>9?'9+':n}</i>`:'');b.setAttribute('aria-label',n?L('الإشعارات ({n} غير مقروء)',{n}):L('الإشعارات'))}
 async function nfSave(){const cur=new Set(nfAll().map(n=>n.id));S.k.nr=(S.k.nr||[]).filter(i=>cur.has(i));S.k.nd=(S.k.nd||[]).filter(i=>cur.has(i));await saveK();nfBadge();refreshPages()}
@@ -94,7 +94,7 @@ const NF={sel:new Set(),mode:false};
 const nfMark=(ids,read)=>{const s=new Set(S.k.nr||[]);ids.forEach(i=>read?s.add(i):s.delete(i));S.k.nr=[...s];return nfSave()};
 const nfDel=ids=>{S.k.nd=[...new Set([...(S.k.nd||[]),...ids])];ids.forEach(i=>NF.sel.delete(i));return nfSave()};
 function nfGo(a){$$('.pg').forEach(x=>{if(x.dataset.sub==='nf')closeEl(x)});setTimeout(()=>{const[k,x]=a;if(k==='p')productDetail(x);else if(k==='d')debtD(x);else openSub(x)},120)}
-SUBS.nf={t:'الإشعارات',f(){const Ls=nfCur(),un=Ls.filter(n=>!n.r).length,IC={debt:LU.hand,stock:LU.pkg,task:LU.chk,bk:LU.db},CL={r:'r',o:'o',b:'tn'};
+SUBS.nf={t:'الإشعارات',f(){const Ls=nfCur(),un=Ls.filter(n=>!n.r).length,IC={debt:LU.hand,stock:LU.pkg,task:LU.chk,bk:LU.db,upd:LU.spark},CL={r:'r',o:'o',b:'tn',g:'g'};
 NF.sel.forEach(i=>{if(!Ls.some(n=>n.id===i))NF.sel.delete(i)});const ns=NF.sel.size;
 return`<div class="nfh"><div><b>${un?L('{n} غير مقروء',{n:un}):L('لا إشعارات جديدة')}</b><small>${plural(Ls.length,'{n} إشعار','{n} إشعارات')}</small></div>${Ls.length?`<button class="btn sm ${NF.mode?'p':''}" data-nf="mode">${SV(LU.sqc)}${NF.mode?L('إنهاء التحديد'):L('تحديد')}</button>`:''}</div>
 ${Ls.length&&!NF.mode?`<div class="bar sm"><button class="btn ghost" data-nf="readall" ${un?'':'disabled'}>${SV(LU.cok)}${L('تحديد الكل كمقروء')}</button><button class="btn ghost dgt" data-nf="delall">${SV(LU.trash)}${L('حذف الكل')}</button></div>`:''}
@@ -183,11 +183,11 @@ ${SVR('rate',LU.repl,'o',L('سعر الصرف'),'<span dir="ltr">'+NF0.format(S.
 ${SWI('vib',LU.vib,'o',L('الاهتزاز عند اللمس'),L('لمسة خفيفة عند الضغط، وتأكيد عند الحفظ، وتنبيه عند الأخطاء'),S.k.vib!==false)}${S.k.vib!==false?SSG(LU.vib,'o',L('شدة الاهتزاز'),'',[['l','خفيف'],['m','متوسط'],['h','قوي']].map(([k,l])=>`<button class="${(S.k.vibLv||'m')===k?'on':''}" data-viblv="${k}">${L(l)}</button>`).join('')):''}
 <button class="srow lnk" data-act="vibTest">${SIc(LU.vib,vi==='native'||vi==='web'?'g':'r')}<span class="t"><b>${L('تجربة الاهتزاز')}</b><small>${vmsg}</small></span>${SV(FWD(),'ch')}</button></section>
 <h3 class="sh3">${L('اللغة')}</h3><section class="grp">${SSG(LU.lang,'tn',L('لغة التطبيق'),'',`<button class="${LANG==='ar'?'on':''}" data-lang="ar">العربية</button><button class="${LANG==='en'?'on':''}" data-lang="en">English</button>`)}</section>
-<h3 class="sh3">${L('الإشعارات')}</h3><section class="grp">${SWI('nfStock',LU.pkg,'o',L('تنبيهات المخزون'),L('نفاد أو انخفاض الكمية، وسعر أقل من التكلفة'),S.k.nfStock!==false)}${SWI('nfDebt',LU.hand,'r',L('تذكير الديون'),L('قبل الاستحقاق بثلاثة أيام وعند التأخر'),S.k.nfDebt!==false)}${SWI('nfBk',LU.db,'tn',L('تذكير النسخ الاحتياطي'),L('إذا مرّ أسبوع بلا نسخة'),S.k.nfBk!==false)}
+<h3 class="sh3">${L('الإشعارات')}</h3><section class="grp">${SWI('nfStock',LU.pkg,'o',L('تنبيهات المخزون'),L('نفاد أو انخفاض الكمية، وسعر أقل من التكلفة'),S.k.nfStock!==false)}${SWI('nfDebt',LU.hand,'r',L('تذكير الديون'),L('قبل الاستحقاق بثلاثة أيام وعند التأخر'),S.k.nfDebt!==false)}${SWI('nfBk',LU.db,'tn',L('تذكير النسخ الاحتياطي'),L('إذا مرّ أسبوع بلا نسخة'),S.k.nfBk!==false)}${SWI('nfUpd',LU.spark,'g',L('إشعارات التحديثات'),L('ما الجديد عند كل تحديث'),S.k.nfUpd!==false)}
 ${SWI('sumOn',LU.bell,'g',L('إشعار ملخص اليوم'),NAT()?L('إشعار يومي على الهاتف لعرض أرباح ومبيعات اليوم'):L('متاح في تطبيق أندرويد — الملخص متوفر دائمًا في الرئيسية'),!!S.k.sumOn)}${SVR('sumT',LU.clock,'tn',L('وقت الملخص'),'<span dir="ltr">'+hm+'</span>')}${SVR('lead',LU.truck,'o',L('تنبيه إعادة الطلب قبل'),plural(+S.k.lead||7,'{n} يوم','{n} أيام'))}${SRI('nfOpen',LU.bell,'tn',L('مركز الإشعارات'),'')}</section>
 <h3 class="sh3">${L('البيانات')}</h3><section class="grp">${SRI('dataOpen',LU.db,'tn',L('مركز البيانات'),L('آخر نسخة: {d}',{d:S.k.lastBk?day(S.k.lastBk):L('لم تؤخذ بعد')}))}${SRI('bk',LU.dl,'g',L('نسخة احتياطية الآن'),L('مع الصور'))}${SSG(LU.repl,'o',L('النسخ الاحتياطي التلقائي'),L('نسخة داخل التطبيق + تذكير بحفظ نسخة خارج الهاتف'),[['off','إيقاف'],['d','يوميًا'],['w','أسبوعيًا']].map(([k,l])=>`<button class="${(S.k.abk||'w')===k?'on':''}" data-abk="${k}">${L(l)}</button>`).join(''))}</section>
 <h3 class="sh3">${L('الأمان')}</h3><section class="grp">${SWI('hide',LU.eyeoff,'tn',L('إخفاء المبالغ'),L('تظهر المبالغ على شكل ••••'),!!S.k.hide)}${SRI('pin',LU.lock,'r',L('قفل التطبيق برمز PIN'),S.k.pin?L('مفعّل — حماية محلية على هذا الجهاز'):L('غير مفعّل'))}${bioRow()}</section>
-<h3 class="sh3">${L('حول التطبيق')}</h3><section class="grp">${SRI('upd',LU.repl,'g',L('التحقق من التحديثات'),L('الإصدار الحالي {v}',{v:APP_VER}))}<div class="about"><img src="icon-192.png" alt=""><div><b>KOPTAN</b><small>${L('مدير أعمالي')} · v${APP_VER} · Titanium Liquid Glass</small><small>${L('يعمل دون إنترنت، وكل البيانات محفوظة على هذا الجهاز فقط.')}</small></div></div></section>`},
+<h3 class="sh3">${L('حول التطبيق')}</h3><section class="grp">${SRI('upd',LU.repl,'g',L('التحقق من التحديثات'),L('الإصدار الحالي {v}',{v:APP_VER}))}${SRI('whatsNew',LU.spark,'tn',L('ما الجديد'),L('سجل التحديثات وما تغيّر في كل إصدار'))}<div class="about"><img src="icon-192.png" alt=""><div><b>KOPTAN</b><small>${L('مدير أعمالي')} · v${APP_VER} · Titanium Liquid Glass</small><small>${L('يعمل دون إنترنت، وكل البيانات محفوظة على هذا الجهاز فقط.')}</small></div></div></section>`},
 b(el){el.addEventListener('click',async e=>{const c=q=>e.target.closest(q);let b;
 if(b=c('[data-sw]')){const k=b.dataset.sw;if(k==='hide')S.k.hide=!S.k.hide;else if(k==='lite')S.k.lite=!S.k.lite;else S.k[k]=S.k[k]===false;await saveK();applyPrefs();buzz(6);refresh();return}
 if(b=c('[data-setcur]')){S.k.cur=b.dataset.setcur;await saveK();refresh();return}
@@ -308,7 +308,12 @@ $('#gb').setAttribute('aria-label',L('بحث'));$('#fab').setAttribute('aria-lab
 $('#nav').innerHTML='<i class="ind"></i>'+TABS.map(([k,ic,l])=>`<button data-t="${k}" aria-label="${esc(L(l))}">${SV(ic)}<span>${L(l)}</span></button>`).join('');
 $('#dt').textContent=new Date().toLocaleDateString(loc(),{weekday:'long',day:'numeric',month:'long'});document.title='KOPTAN'}
 function setNav(t){const n=$('#nav'),bs=n.querySelectorAll('button');bs.forEach(b=>b.classList.toggle('on',b.dataset.t===t));const b=n.querySelector('button.on'),i=n.querySelector('.ind');if(b&&i&&b.offsetWidth){i.style.width=(b.offsetWidth-8)+'px';i.style.transform='translateX('+(b.offsetLeft+4)+'px)'}document.documentElement.style.setProperty('--nh',n.offsetHeight+'px')}
-function go(t){if(t!==tab){q='';per='all'}tab=t;render(true);scrollTo(0,0);buzz(5)}
+let TS=[],exitAt=0;
+function go(t,bk){if(t!==tab){q='';per='all';if(!bk){const pv=tab==='arch'?'box':tab;TS=TS.filter(x=>x!==t&&x!==pv);TS.push(pv);if(TS.length>12)TS.shift()}}tab=t;render(true);scrollTo(0,0);buzz(5)}
+/* Back on a main screen: archive -> products, else the previous tab, else Home; on Home a second press within 2.5 s leaves the app */
+function backRoot(nat){if(tab==='arch'){tab='box';q='';refresh();scrollTo(0,0)}else if(TS.length)go(TS.pop(),1);else if(tab!=='home')go('home',1);
+else{if(Date.now()-exitAt<2500){exitAt=0;if(nat)capCall('App','exitApp').catch(()=>{});return}exitAt=Date.now();toast(L('اضغط رجوع مرة أخرى للخروج'));if(!nat){setTimeout(hguard,2500);return}}
+if(!nat)hguard()}
 function render(enter){const t=tab==='arch'?'box':tab,V=$('#v');setNav(t);V.className=enter&&S.k.anim!==false?'enter':'';
 V.innerHTML=tab==='home'?vHome():tab==='cart'?vSales():tab==='debt'?vDebts():tab==='more'?vMore():vProducts();
 if(enter&&V.firstChild)[...V.firstChild.children].forEach((c,i)=>c.style.setProperty('--i',Math.min(i,8)));

@@ -349,5 +349,7 @@ window.EN={
 "يُستخدم لأرقام واتساب المحلية":"Used for local WhatsApp numbers",
 "عدد الأيام":"Number of days",
 "هل شعرت بالاهتزاز؟ إن لم تشعر به، ارفع الشدة أو فعّل اهتزاز اللمس في إعدادات الهاتف":"Did you feel it? If not, raise the strength or turn on touch vibration in your phone settings",
-"سجّل عملية بيع أولًا لمعاينة الفاتورة":"Record a sale first to preview the invoice"
+"سجّل عملية بيع أولًا لمعاينة الفاتورة":"Record a sale first to preview the invoice",
+/* v9.4 */
+"إشعارات التحديثات":"Update notifications","ما الجديد عند كل تحديث":"What's new after every update","ما الجديد":"What's new","سجل التحديثات وما تغيّر في كل إصدار":"Update history and what changed in each version","اضغط رجوع مرة أخرى للخروج":"Press back again to exit","ما الجديد في الإصدار {v}":"What's new in version {v}","إشعار «ما الجديد» يظهر بعد كل تحديث":"A “What's new” notification after every update","زر الرجوع في الهاتف يعود إلى الشاشة السابقة بدل الخروج":"The phone's back button returns to the previous screen instead of closing the app","اضغط رجوع مرتين في الرئيسية للخروج من التطبيق":"Press back twice on Home to exit the app","الفاتورة بتصميم داكن احترافي":"Professional dark invoice design","المبالغ والخصم تظهر بالاتجاه الصحيح في الفاتورة":"Amounts and discount show the right way round on the invoice","فاتورة احترافية بترقيم تسلسلي وحالة الدفع":"Professional invoice with sequential numbers and payment status","اهتزاز أوضح مع اختيار القوة وزر تجربة":"Stronger vibration with a strength setting and a test button","تصميم جديد للإعدادات":"Redesigned settings","التطبيق أسرع وأخف بكثير":"The app is much faster and lighter","اهتزاز خفيف عند اللمس":"Light vibration on touch","تم التحديث إلى الإصدار {v}":"Updated to version {v}","الإصدار {v}":"Version {v}"
 };

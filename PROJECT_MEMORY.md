@@ -1,7 +1,7 @@
 # KOPTAN · مدير أعمالي — Project memory
 
 > Detailed, persistent context for future development sessions. The concise rules are in [CLAUDE.md](CLAUDE.md).
-> Last updated: 2026-11-06 · App version **9.3.1** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
+> Last updated: 2026-11-06 · App version **9.4.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
 
 ---
 
@@ -213,6 +213,15 @@ Rules:
 - Verified: AR/EN previews (partial debt with note/address/tax, walk-in paid by card), `tests/run.sh shots` green (e2e 42/42, features 20/20, self-update, web auto-update, SW upgrade, no overflow); invoice screenshots reviewed. Deployed 9.3.1; *Verify live site* run #8 (attempt 2) all PASS (version.json 9.3.1, bundle 335 KB). Web-layer only, no APK rebuild.
 - **Incident:** this session started from an older branch (9.2.0) and published a 9.2.1 build to gh-pages over the live 9.3.0 for about a minute, then reverted it (gh-pages `cc00f72`). APKs only update to newer versions, so none moved back. The 9.2.1 commit is reverted on `claude/new-session-a3tcdh`, and 9.3.0 (`ccr-e2573824-u58q6u`) is merged into it. **Before deploying, always check `git show origin/gh-pages:version.json` and that the source branch contains the live version.**
 
+### 2026-11-06: v9.4.0 what's new notifications + Android back button
+- **What's new** (`extra.js`): `CHANGES` = release notes, newest first (`{v,d,n:[Arabic notes]}`; **add an entry with every release** + EN keys). `updSeen()` (from `afterBoot`) runs once per version (`S.k.lastVer`): it queues the versions installed since the last run (only the current one on a first run) in `S.k.updN` (max 3, newest first; `nt` stamps keep newest on top). `nfAll1` adds one notification per queued version (`u:<ver>`, kind `upd`, green spark, opens `SUBS.upd`). After a real update a toast “Updated to version X” with a “What's new” button. `SUBS.upd` page lists every version ≤ APP_VER. Settings: switch `nfUpd` (Notifications) and row “ما الجديد” (About, `ACT.whatsNew`). New optional settings: `lastVer, updN, nfUpd`.
+- **Back button.** Root cause: the APK had no `@capacitor/app`, and Capacitor core has no back handling (checked in `@capacitor/android` 6.2.3: only the App plugin calls `canGoBack/goBack`), so Back always closed the app. Changes:
+  - `build-apk.yml` adds `@capacitor/app@6.0.3`. `afterBoot` registers `App.addListener('backButton')` → `backTop()` (top overlay; respects a dirty form's `_back`) else `backRoot(true)`.
+  - Web/PWA: a guard history entry (`hguard`, pushed on pointerdown/keydown or before overlay entries) sits under the overlay entries; popstate with no overlay → `backRoot(false)`.
+  - `backRoot`: archive → products, else the previous tab (`TS` stack kept by `go(t)`, deduped, max 12), else Home. On Home the first press shows “اضغط رجوع مرة أخرى للخروج”, a second press within 2.5 s exits (`App.exitApp` natively; on the web the guard isn't re-pushed, so the browser leaves).
+- Verified: `tests/run.sh shots` green (e2e 42/42 incl. P1 overlay back, features 24/24: new F21 what's new, F22 web back, F23 native back with a mocked App plugin, F24 no JS errors), self-update, web auto-update, SW upgrade, no overflow. AR/EN screenshots of toast, notification center and the What's new page reviewed.
+- **Needs a new APK** for the back button (native plugin). The web part (what's new) arrives by self-update.
+
 ---
 
 ## 8. Known issues / pending
@@ -227,6 +236,7 @@ Rules:
 - Soft-keyboard input of Arabic digits on the lock screen isn't testable in Playwright (it inserts text with no key event). Irrelevant now that the keypad is used.
 - **v9.1 native parts not verified on a real phone:** NativeBiometric prompt, LocalNotifications daily notification, camera barcode scanning inside the Android WebView (BarcodeDetector support in WebView is uncertain; manual entry is the fallback), invoice image sharing via the Share plugin.
 - Native features (fingerprint, daily notification, native haptics) need an APK built after they were added (haptics: v9.2.0+). Web features arrive by self-update. Haptics on a real phone are not verified yet.
+- **Back button in the APK needs an APK built from 9.4.0+** (adds `@capacitor/app`); older APKs keep closing on Back. Not yet tested on a real phone (only with a mocked plugin).
 - Pending ideas: delta updates; iOS self-update; ML Kit barcode plugin if WebView lacks BarcodeDetector.
 
 ---
