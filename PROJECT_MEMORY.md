@@ -210,7 +210,7 @@ Rules:
 
 ### 2026-11-06: v9.3.1 dark invoice
 - The owner asked for the invoice in the dark color. `invImage` keeps the 9.3.0 layout and data (sequential number, status pill, address, tax no., notes, custom footer) but is now drawn dark: `#0b0c0f` background with soft burgundy/titanium glows, burgundy edge bars, rounded glass frame, metal-gradient store name and title, logo outline, dark table header, status pill as tinted outline (colors mapped by `DK` from `invInfo`'s light colors, so `invInfo`/`invText` are unchanged), burgundy-gradient total box. Amounts are drawn LTR so Arabic shows `70 $` / `−5 $` like the app (the minus sign used to land on the wrong side).
-- Verified: AR/EN previews (partial debt with note/address/tax, walk-in paid by card), `tests/run.sh shots` green (e2e 42/42, features 20/20, self-update, web auto-update, SW upgrade, no overflow); invoice screenshots reviewed.
+- Verified: AR/EN previews (partial debt with note/address/tax, walk-in paid by card), `tests/run.sh shots` green (e2e 42/42, features 20/20, self-update, web auto-update, SW upgrade, no overflow); invoice screenshots reviewed. Deployed 9.3.1; *Verify live site* run #8 (attempt 2) all PASS (version.json 9.3.1, bundle 335 KB). Web-layer only, no APK rebuild.
 - **Incident:** this session started from an older branch (9.2.0) and published a 9.2.1 build to gh-pages over the live 9.3.0 for about a minute, then reverted it (gh-pages `cc00f72`). APKs only update to newer versions, so none moved back. The 9.2.1 commit is reverted on `claude/new-session-a3tcdh`, and 9.3.0 (`ccr-e2573824-u58q6u`) is merged into it. **Before deploying, always check `git show origin/gh-pages:version.json` and that the source branch contains the live version.**
 
 ---
