@@ -1,7 +1,7 @@
 /* KOPTAN · مدير أعمالي — v9 Titanium Liquid Glass
    core: i18n, state, storage (IndexedDB "pbm" v5 — unchanged schema, fully compatible), formatting, UI primitives, images, files. */
 'use strict';
-const APP_VER='9.3.1';
+const APP_VER='9.4.0';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -166,11 +166,15 @@ const ok=m=>toast(m,'ok'),warn=m=>toast(m,'w');
 function toastP(m){const t=document.createElement('div');t.className='toast gl ld';t.innerHTML='<i class="spin"></i><span></span>';t.lastChild.textContent=m;document.body.append(t);return()=>t.remove()}
 
 /* ---------- Android back button: closes the top overlay instead of leaving the app ---------- */
-const OVS='.sheet-bg,.pg,.zm';let hst=0,hig=0,hsy;
+const OVS='.sheet-bg,.pg,.zm';let hst=0,hig=0,hsy,hg=0;
 const hpush=()=>{try{history.pushState({o:1},'');hst++}catch(e){}};
-const hsync=()=>{clearTimeout(hsy);hsy=setTimeout(()=>{const n=$$(OVS).length;while(hst<n){const b=hst;hpush();if(hst===b)break}if(hst>n){const k=hst-n;hst=n;hig=1;try{history.go(-k)}catch(e){hig=0}}},40)};
+/* one guard entry under the overlay entries: Back on a main tab goes to the previous tab (backRoot in more.js) instead of leaving */
+const hguard=()=>{if(hg||hst)return;try{history.pushState({g:1},'');hg=1}catch(e){}};addEventListener('pointerdown',hguard,true);addEventListener('keydown',hguard,true);
+const hsync=()=>{clearTimeout(hsy);hsy=setTimeout(()=>{const n=$$(OVS).length;while(hst<n){hguard();const b=hst;hpush();if(hst===b)break}if(hst>n){const k=hst-n;hst=n;hig=1;try{history.go(-k)}catch(e){hig=0}}},40)};
 new MutationObserver(ms=>{if(ms.some(m=>[...m.addedNodes,...m.removedNodes].some(n=>n.nodeType===1&&n.matches&&n.matches(OVS))))hsync()}).observe(document.body,{childList:true});
-addEventListener('popstate',()=>{if(hig>0){hig=0;return}const t=$$(OVS).pop();if(!t){hst=0;return}hst=Math.max(0,hst-1);if(t._back){hpush();t._back();return}closeEl(t)});
+addEventListener('popstate',()=>{if(hig>0){hig=0;return}const t=$$(OVS).pop();if(!t){hst=0;hg=0;if(typeof backRoot==='function')backRoot(false);return}hst=Math.max(0,hst-1);if(t._back){hpush();t._back();return}closeEl(t)});
+/* native back (APK, @capacitor/app): same order: top overlay first, then the previous tab, then a double press exits */
+function backTop(){const t=$$(OVS).pop();if(!t)return false;if(t._back)t._back();else closeEl(t);return true}
 function closeEl(el){if(!el||!el.isConnected)return;if(el.classList.contains('sheet-bg')){el.classList.add('out');const s=el.firstChild;s.style.transition='transform .2s';s.style.transform='translateY(100%)';setTimeout(()=>el.remove(),190)}else if(el.classList.contains('pg')){el.classList.add('out');setTimeout(()=>el.remove(),170)}else el.remove()}
 
 /* ---------- sheets (glass bottom sheets) ---------- */
