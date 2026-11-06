@@ -220,6 +220,7 @@ Rules:
   - Web/PWA: a guard history entry (`hguard`, pushed on pointerdown/keydown or before overlay entries) sits under the overlay entries; popstate with no overlay → `backRoot(false)`.
   - `backRoot`: archive → products, else the previous tab (`TS` stack kept by `go(t)`, deduped, max 12), else Home. On Home the first press shows “اضغط رجوع مرة أخرى للخروج”, a second press within 2.5 s exits (`App.exitApp` natively; on the web the guard isn't re-pushed, so the browser leaves).
 - Verified: `tests/run.sh shots` green (e2e 42/42 incl. P1 overlay back, features 24/24: new F21 what's new, F22 web back, F23 native back with a mocked App plugin, F24 no JS errors), self-update, web auto-update, SW upgrade, no overflow. AR/EN screenshots of toast, notification center and the What's new page reviewed.
+- Deployed 9.4.0; *Verify live site* run (id 42277102882) all PASS (version.json 9.4.0, bundle 338 KB).
 - **Needs a new APK** for the back button (native plugin). The web part (what's new) arrives by self-update.
 
 ---
