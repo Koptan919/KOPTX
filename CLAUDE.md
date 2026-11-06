@@ -14,12 +14,12 @@ Ships as: a PWA on GitHub Pages (https://koptan919.github.io/Koptan/), an Androi
 - Make the smallest change that does the job. Don't reformat or restructure files you aren't changing.
 
 ## Layout
-`index.html` shell · `app.css` design system · `i18n.js` EN dictionary · `core.js` state/storage/format/UI primitives/images/native bridge · `views.js` home, chart, products, sales, debts, expenses · `more.js` suppliers, notifications, data center, settings, reports, tasks, calendar, search, quick add, updater, render + boot · `sw.js` service worker · `tools/publish-web.sh` · `tests/` · `.github/workflows/`.
+`index.html` shell · `app.css` design system · `i18n.js` EN dictionary · `core.js` state/storage/format/UI primitives/images/native bridge · `views.js` home, chart, products, sales, debts, expenses · `more.js` suppliers, notifications, data center, settings, reports, tasks, calendar, search, quick add, updater, render + boot · `extra.js` invoices, barcode, biometric, auto backup, daily summary, reorder, customers, goal · `fonts/` bundled Tajawal · `sw.js` service worker · `tools/publish-web.sh` · `tests/` · `.github/workflows/`.
 
 ## Releasing a change (all steps, in order)
-1. Bump `APP_VER` in `core.js`, `?v=NNN` in `index.html` + `Q` in `sw.js`, cache name `V` in `sw.js`, `version` in `manifest.json`.
-2. `node --check core.js views.js more.js i18n.js sw.js`, then confirm every Arabic string has an EN entry (see PROJECT_MEMORY.md › Testing).
-3. `tests/run.sh` must pass (42 e2e checks + self-update + SW upgrade). Use `tests/run.sh shots` for UI changes and look at the screenshots.
+1. Bump `APP_VER` in `core.js`, `?v=NNN` in `index.html` (all 5 scripts + css) + `Q` in `sw.js`, cache name `V` in `sw.js`, `version` in `manifest.json`.
+2. `node --check core.js views.js more.js extra.js i18n.js sw.js`, then confirm every Arabic string has an EN entry (see PROJECT_MEMORY.md › Testing).
+3. `tests/run.sh` must pass (42 e2e + 17 feature checks + self-update + SW upgrade). Use `tests/run.sh shots` for UI changes and look at the screenshots.
 4. Commit on the working branch and push.
 5. Deploy: check out `gh-pages` in a worktree, run `tools/publish-web.sh <worktree>`, commit, push. This also publishes `version.json` + `koptan-<ver>.zip`, which installed APKs download as their update.
 6. Run the `Verify live site` workflow and read its log. Only claim success if every line says PASS.

@@ -1,7 +1,7 @@
 # KOPTAN · مدير أعمالي — Project memory
 
 > Detailed, persistent context for future development sessions. The concise rules are in [CLAUDE.md](CLAUDE.md).
-> Last updated: 2026-11-06 · App version **9.0.2** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
+> Last updated: 2026-11-06 · App version **9.1.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
 
 ---
 
@@ -34,6 +34,8 @@ No bundler, no framework, no npm deps for the app itself. Classic `<script>` fil
 | `core.js` | `APP_VER`; `L()` i18n + `applyDir()`; Lucide icon paths `LU`, official WhatsApp SVG; state `S` + defaults `KDEF`; IndexedDB (`openDB/put/del/load/uniq`); formatting (`fmt`, `fd`, `day`, `dtm`, `toTs/toDs`); money math (`uc`, `sRev`, `prof`, `dPaid`, `dRem`, `toU`, `AGG`); toast (with action/undo), `confirmBox`, `sheet`, `shell` (live page with `_fill`), `page` (form page with dirty guard), `grp` chips, `invalid`; Android back-button history sync; phone/WhatsApp/url/map helpers + `cBtn`; image pipeline (Blob storage, thumbnails, hydration observer, `gcImgs`, `sweepImgs`, data-URL migration); native bridge (`NAT`, `hasPl`, `capCall`), image picking (Camera plugin → file input fallback), `saveFile` (Filesystem+Share → download fallback), `sha`, `log`, animated counters. |
 | `views.js` | Delegated actions `ACT[name]` via `data-act`/`data-id`; periods (`per`, `rng`, `inR`); **home**; **profit chart**; **products** (filters, sort, grouping by supplier, card/list, detail page, add/edit page with draft autosave, quick edit, stock add with weighted cost, archive, delete+undo); **sales** (sale page, list, detail, return); **debts** (people view, list, person page, detail, add/edit, payments); **expenses** (page, recurring `runRec`, `expName`). |
 | `more.js` | `SUBS` sub-pages + `openSub`/`refreshPages`; **suppliers** (stats, duplicates, migration, `resolveSup`, form, merge, delete, profile page); **notifications**; **data center** (stats, CSV, backup/restore with checksum); **settings**; `setLang`, `applyPrefs`, PIN form + lock screen; **self-update** (`selfUpdate`, `newer`); **reports**; expenses list; tasks; calendar; More menu; global search; **quick-add sheet**; nav/`render`/`refresh`/`rebuildUI`; boot. |
+| `extra.js` | v9.1 features (loaded last): monthly goal (`goalHTML`), daily summary (`ACT.daySum`, `scheduleSum` → Android LocalNotifications id 9001), WhatsApp invoice (`invoice`, canvas PNG + `invText`, ref `INV-YYYYMMDD-XXXX`), customers (`customers()` derived from `s.cust`/debts, `SUBS.cus`, `ACT.cus`), reorder (`velocity`, `reorderList`, `SUBS.reo`, `ACT.supOrder`, wraps `nfAll` to add `r:` notifications), barcode (`scanCode` → BarcodeDetector + getUserMedia, manual fallback; `ACT.scanP`), biometric (`bioAvail/bioVerify/ACT.bioSet`: NativeBiometric plugin or WebAuthn platform authenticator), auto backups (`makeSnap`, `snapsHTML`, `autoBackup`), generic settings inputs `[data-setk]`, `afterBoot()`. Extends `KDEF`. |
+| `fonts/` | Tajawal woff2 (arabic+latin × 400/500/700/800, ~96 KB) + `OFL-Tajawal.txt`. `@font-face` at top of app.css; no Google Fonts. |
 | `sw.js` | Cache `koptan-v<ver>`; precaches core + versioned assets; navigation = network-first with 3.5 s fallback to cached `index.html`; versioned assets cache-first; deletes older caches (incl. legacy `pbm-v9`). Not registered inside the native app. |
 | `manifest.json` | PWA manifest (rtl/ar, shortcuts `?a=sale|exp|prod|debt`, version). |
 | `icon-192.png`, `icon-512.png` | Titanium × Burgundy bar-chart icon (rendered from an SVG with Playwright; used for PWA, APK launcher, iOS). |
@@ -48,17 +50,17 @@ No bundler, no framework, no npm deps for the app itself. Classic `<script>` fil
 - In `shell(title, fill)`, `fill` receives the page element as its argument. Use that argument, **not** the outer `const`, because the first fill runs before `shell` returns (this caused a TDZ crash before; fixed).
 
 ### Data model (IndexedDB `pbm`, version 5, keyPath `id`): unchanged since v8, do not break it
-- `p` product: `id,name,cat,cost,ship,extra,price,qty,min,sold,fav,arch,created,updated,imgs[],img,link,notes,pdate,adate,sid,supplier,phone,wa`. Unit cost `uc = cost+ship+extra`. `supplier/phone/wa` are a mirror of the linked supplier (kept in sync by `syncSp`).
-- `s` sale: `id,pid,name,qty,price,disc,uc,rate,date,note,paid,pay,did?,cust?`. Snapshot: never recomputed.
+- `p` product: `id,code?(barcode, unique),name,cat,cost,ship,extra,price,qty,min,sold,fav,arch,created,updated,imgs[],img,link,notes,pdate,adate,sid,supplier,phone,wa`. Unit cost `uc = cost+ship+extra`. `supplier/phone/wa` are a mirror of the linked supplier (kept in sync by `syncSp`).
+- `s` sale: `id,pid,name,qty,price,disc,uc,rate,date,note,paid,pay,did?,cust?,cph?` (`cust` can now be set on any sale, not only credit sales). Snapshot: never recomputed.
 - `e` expense: `id,amt(USD),cur,orig,rate,cat,pay,note,notes,date,pid,sid,img,rec(''|w|m),next,src?` (children of recurring expenses carry `src`).
 - `d` debt: `id,who,phone,type(in=owed to me|out=I owe),amt,cur(USD|LBP),rate,date,due,reason,notes,pid,sid,img,arch,created,pays[{id,amt,date,note,settle}]`.
 - `sp` supplier: `id,name,phone,wa,link,addr,img,notes,created`.
 - `t` task `{id,title,due,done}` · `l` activity log `{id,m,d}` (messages stored in **Arabic**, translated on display via `LOGP`/`logTxt`).
-- `k`: record `k` = settings (`KDEF` in core.js: `cur,rate,hide,pin(sha256 'pbm'+pin),vib,anim,cc,hp,srt,lastBk,lang,lite,nfStock,nfDebt,nfBk,nr[],nd[],nt{},chr,chm,supMig,supBak`); record `dr` = unsaved new-product draft; record `prebak-v8` = safety copy from the v8 supplier migration.
+- `k`: record `k` = settings (`KDEF` in core.js: `cur,rate,hide,pin(sha256 'pbm'+pin),vib,anim,cc,hp,srt,lastBk,lang,lite,nfStock,nfDebt,nfBk,nr[],nd[],nt{},chr,chm,supMig,supBak`); record `dr` = unsaved new-product draft; record `prebak-v8` = safety copy from the v8 supplier migration; records `snap0..snap2` = automatic in-app data snapshots `{id,at,counts,data:{sp,p,s,e,l,t,d,k}}` (no photos, no pin/bio). v9.1 settings: `biz,bizPh,goal,abk(off|d|w),sumOn,sumH,sumM,lead,bio,bioId,lastSnap,snapN,bkAsk`.
 - `img`: `{id:'i…', full:Blob, th:Blob, t}`; referenced by id from products/expenses/debts/suppliers/draft.
 
 ### Backup format
-v5 (current): `{app:'KOPTAN', v:5, ver, at, counts, sum, sp,p,s,e,l,t,d,k,imgs:[{id,full:dataURL}]}`, where `sum` = SHA-256 of `JSON.stringify({sp,p,s,e,l,t,d,k,imgs})` in that key order. PIN is excluded from backups. Import checks JSON validity, structure, per-record validity, checksum (ok / bad / none = legacy) and image data, then shows a preview (file vs. current counts) and asks twice before replacing. Rollback restores the previous data if anything throws. Legacy v4 files (old app, no `app`/`sum`) import fine.
+v5 (current): `{app:'KOPTAN', v:5, ver, at, counts, sum, sp,p,s,e,l,t,d,k,imgs:[{id,full:dataURL}]}`, where `sum` = SHA-256 of `JSON.stringify({sp,p,s,e,l,t,d,k,imgs})` in that key order. PIN, `bio`, `bioId` and snapshot counters are excluded from backups. Import checks JSON validity, structure, per-record validity, checksum (ok / bad / none = legacy) and image data, then shows a preview (file vs. current counts) and asks twice before replacing. Rollback restores the previous data if anything throws. Legacy v4 files (old app, no `app`/`sum`) import fine.
 
 ---
 
@@ -155,6 +157,22 @@ Rules:
 ### 2026-11-06: permanent APK signing key (infrastructure)
 - Added `create-signing-key.yml`; `build-apk.yml` now signs with the decrypted permanent key and verifies the fingerprint (removed the old 4-secret base64 path). Tested the shell logic locally (key generation, AES round trip, wrong password rejected, fingerprint match/mismatch). Waiting for the owner to add `KEYSTORE_PASSWORD`.
 
+### 2026-11-06: v9.1.0 eight features + local font
+- Added (mostly in `extra.js`, small hooks in views.js/more.js):
+  - WhatsApp invoice: image + text, from sale detail and from the toast after a sale.
+  - Barcode: product field, camera scan, search, selecting a product on the sale page.
+  - Fingerprint/face unlock.
+  - Automatic in-app snapshots + full-backup reminder.
+  - Daily summary (+ Android notification).
+  - Reorder suggestions + WhatsApp order to the supplier.
+  - Customers page + optional customer on every sale.
+  - Monthly profit goal.
+  - Tajawal bundled.
+- Settings: store name/phone, goal, summary time, reorder lead days, auto-backup frequency, fingerprint.
+- APK workflow adds `@capacitor/local-notifications@6.1.3`, `@capgo/capacitor-native-biometric@6.0.4` (both compileSdk 34) + POST_NOTIFICATIONS/USE_BIOMETRIC permissions. Copies `extra.js` and `fonts/`.
+- Fixed during testing: product-page buttons overflowed at 320px once the real font loaded → `.acts .btn{flex:1 1 0;min-width:0}`. Invoice needed the 500 weight preloaded.
+- Verified: `tests/run.sh shots` → e2e 42/42, features 17/17 (WebAuthn via Chromium virtual authenticator, camera via fake device + mocked BarcodeDetector, native plugins mocked), self-update, SW upgrade from the pre-v9 app, no overflow at 320/360/412.
+
 ---
 
 ## 8. Known issues / pending
@@ -163,12 +181,13 @@ Rules:
 - APK minimum is now Android 6.0 (minSdk 23), required by the updater's dependencies.
 - **Not verified on a real device:** Camera/gallery plugin flow, Filesystem/Share save, and the actual self-update download/apply inside the APK (only tested with a mocked plugin). If the native camera call fails with a non-cancel error, the code falls back to the file input.
 - iOS IPA is unsigned and doesn't self-update (Capgo updater not added to iOS). Recommend the PWA on iOS.
-- Google Fonts need network on first load; the APK uses system fonts when offline.
 - Arabic plural forms are simplified (singular for 1, plural otherwise).
 - Avatars use the first letter of user names (data, not translated).
 - Headless test browsers report few CPU cores, so `autoLite()` turns on performance mode. Set `S.k.lite=false` before taking design screenshots.
 - Soft-keyboard input of Arabic digits on the lock screen isn't testable in Playwright (it inserts text with no key event). Irrelevant now that the keypad is used.
-- Pending ideas (not requested yet): bundle the font locally; delta updates; iOS self-update.
+- **v9.1 native parts not verified on a real phone:** NativeBiometric prompt, LocalNotifications daily notification, camera barcode scanning inside the Android WebView (BarcodeDetector support in WebView is uncertain; manual entry is the fallback), invoice image sharing via the Share plugin.
+- Native features (fingerprint, daily notification) need the new APK; web features arrive by self-update.
+- Pending ideas: delta updates; iOS self-update; ML Kit barcode plugin if WebView lacks BarcodeDetector.
 
 ---
 
@@ -176,11 +195,11 @@ Rules:
 
 ### Test locally (needs Node + Playwright/Chromium; this cloud environment has them preinstalled)
 ```bash
-tests/run.sh          # 42 e2e checks + self-update (mocked native) + SW upgrade from the pre-v9 app
+tests/run.sh          # 42 e2e checks + self-update (mocked native) + 17 v9.1 feature checks + SW upgrade from the pre-v9 app
 tests/run.sh shots    # + screenshots of every screen (320/412 ar, 360 en) and horizontal-overflow check
 node --check core.js views.js more.js i18n.js sw.js
 # translation coverage (prints missing keys; must be empty):
-node -e "global.window={};require('./i18n.js');const fs=require('fs');const k=new Set();for(const f of ['core.js','views.js','more.js'])for(const m of fs.readFileSync(f,'utf8').matchAll(/'((?:[^'\\\\\n]|\\\\.)*)'/g))if(/[؀-ۿ]/.test(m[1]))k.add(m[1]);console.log([...k].filter(x=>!(x in window.EN)))"
+node -e "global.window={};require('./i18n.js');const fs=require('fs');const k=new Set();for(const f of ['core.js','views.js','more.js','extra.js'])for(const m of fs.readFileSync(f,'utf8').matchAll(/'((?:[^'\\\\\n]|\\\\.)*)'/g))if(/[؀-ۿ]/.test(m[1]))k.add(m[1]);console.log([...k].filter(x=>!(x in window.EN)))"
 ```
 The e2e seeds data **with the old app's own functions** (`tests/fixtures/v8`) on the same origin, then opens the new app. That proves data compatibility. It covers: chart math vs `AGG`, FAB, product add with photo + optional link, supplier links (tel/wa/link/map), credit sale = one debt and single profit, expenses, debts/payments, supplier merge after confirm, delete + undo + permanent delete (history unchanged, image GC), archive, notifications (read, multi-delete, persistence, deep link, delete all), backup/restore (own, tampered, broken, legacy v4), settings persistence, Android back button, PIN, EN with no untranslated text, RTL restore, reload persistence, zero JS errors.
 
