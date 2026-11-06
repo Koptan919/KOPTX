@@ -137,17 +137,21 @@ catch(e){b.querySelector('.scanv').hidden=true;msg(L('تعذر تشغيل الك
 ACT.scanP=()=>scanCode(code=>{const p=S.p.find(x=>x.code===code);if(p)return productDetail(p.id);confirmBox(L('لا يوجد منتج بهذا الباركود'),()=>{addProduct();setTimeout(()=>{const pg=$$('.pg').pop(),i=pg&&pg.querySelector('[name=code]');if(i){i.value=code;i.dispatchEvent(new Event('input',{bubbles:true}))}},120)},{danger:false,icon:LU.scan,yes:L('منتج جديد بهذا الباركود'),sub:code})});
 
 /* =================== biometric unlock (Android: NativeBiometric plugin · browser: WebAuthn platform authenticator) =================== */
-let BIO=null;
+let BIO=null,BIOT=null;
+/* which biometric the device uses: 'face' | 'finger' | 'any' (both, or unknown). The OS picks the method; we only name it right. */
+const BIOK=()=>BIOT||S.k.bioT||'any',bioName=()=>L({face:'الدخول بالوجه',finger:'الدخول بالبصمة'}[BIOK()]||'الدخول بالبصمة أو الوجه'),bioIcon=()=>BIOK()==='face'?LU.face:LU.finger;
+function webBioKind(){const u=navigator.userAgent||'';if(/iPhone|iPod/.test(u))return Math.max(screen.width,screen.height)>=812?'face':'finger';if(/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1))return'any';if(/Macintosh/.test(u))return'finger';return'any'}
+function bioKind(k){BIOT=k;if(k&&S.k.bioT!==k){S.k.bioT=k;saveKSoon()}}
 const rnd=n=>crypto.getRandomValues(new Uint8Array(n)),b64=a=>btoa(String.fromCharCode(...new Uint8Array(a))),ub64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
-async function bioAvail(){if(BIO!==null)return BIO;try{if(hasPl('NativeBiometric')){const r=await capCall('NativeBiometric','isAvailable');BIO=r&&r.isAvailable?'nat':''}else if(window.PublicKeyCredential&&PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable())BIO='web';else BIO=''}catch(e){BIO=''}return BIO}
-function bioRow(){if(BIO===null){bioAvail().then(()=>refreshPages());return''}if(!BIO)return'';return`<div class="srow">${SIc(LU.finger,'r')}<span class="t"><b>${L('الدخول بالبصمة')}</b><small>${S.k.pin?L('بصمة الإصبع أو الوجه بدل كتابة الرمز — الرمز يبقى احتياطيًا'):L('فعّل رمز PIN أولًا')}</small></span><button class="sw ${S.k.bio?'on':''}" role="switch" aria-checked="${!!S.k.bio}" aria-label="${esc(L('الدخول بالبصمة'))}" data-act="bioSet"></button></div>`}
-async function bioVerify(){const a=await bioAvail();try{if(a==='nat'){await capCall('NativeBiometric','verifyIdentity',{reason:L('افتح KOPT X'),title:'KOPT X',subtitle:L('استخدم البصمة لفتح التطبيق'),negativeButtonText:L('استخدم الرمز'),maxAttempts:3});return true}
+async function bioAvail(){if(BIO!==null)return BIO;try{if(hasPl('NativeBiometric')){const r=await capCall('NativeBiometric','isAvailable');BIO=r&&r.isAvailable?'nat':'';if(BIO)bioKind({1:'finger',3:'finger',2:'face',4:'face'}[r.biometryType]||'any')}else if(window.PublicKeyCredential&&PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()){BIO='web';bioKind(webBioKind())}else BIO=''}catch(e){BIO=''}return BIO}
+function bioRow(){if(BIO===null){bioAvail().then(()=>refreshPages());return''}if(!BIO)return'';const k=BIOK();return`<div class="srow">${SIc(bioIcon(),'r')}<span class="t"><b>${bioName()}</b><small>${S.k.pin?L(k==='face'?'افتح التطبيق بوجهك بدل كتابة الرمز — الرمز يبقى احتياطيًا':k==='finger'?'افتح التطبيق ببصمة إصبعك بدل كتابة الرمز — الرمز يبقى احتياطيًا':'بصمة الإصبع أو الوجه بدل كتابة الرمز — الرمز يبقى احتياطيًا'):L('فعّل رمز PIN أولًا')}</small></span><button class="sw ${S.k.bio?'on':''}" role="switch" aria-checked="${!!S.k.bio}" aria-label="${esc(bioName())}" data-act="bioSet"></button></div>`}
+async function bioVerify(){const a=await bioAvail();try{if(a==='nat'){await capCall('NativeBiometric','verifyIdentity',{reason:L('افتح KOPT X'),title:'KOPT X',subtitle:L({face:'انظر إلى الهاتف لفتح التطبيق',finger:'استخدم البصمة لفتح التطبيق'}[BIOK()]||'استخدم البصمة أو الوجه لفتح التطبيق'),negativeButtonText:L('استخدم الرمز'),maxAttempts:3});return true}
 if(a==='web'&&S.k.bioId){const r=await navigator.credentials.get({publicKey:{challenge:rnd(32),allowCredentials:[{type:'public-key',id:ub64(S.k.bioId)}],userVerification:'required',timeout:60000}});const ad=new Uint8Array(r.response.authenticatorData);return!!(ad[32]&4)}}catch(e){if(!cancelled(e)&&!(e&&e.name==='NotAllowedError'))console.warn('bio',e)}return false}
-ACT.bioSet=async()=>{if(S.k.bio){S.k.bio=false;S.k.bioId='';await saveK();ok(L('تم إيقاف الدخول بالبصمة'));refresh();return}if(!S.k.pin){warn(L('فعّل رمز PIN أولًا — البصمة تُستخدم معه'));return}const a=await bioAvail();
-try{if(a==='nat')await capCall('NativeBiometric','verifyIdentity',{reason:L('تفعيل الدخول بالبصمة'),title:'KOPT X',subtitle:L('ضع إصبعك للتأكيد'),negativeButtonText:L('إلغاء')});
-else if(a==='web'){const c=await navigator.credentials.create({publicKey:{challenge:rnd(32),rp:{name:'KOPT X'},user:{id:rnd(16),name:'koptan',displayName:'KOPT X'},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},attestation:'none',timeout:60000}});S.k.bioId=b64(c.rawId)}else return warn(L('البصمة غير متاحة على هذا الجهاز'))}
-catch(e){if(!cancelled(e)&&!(e&&e.name==='NotAllowedError'))warn(L('تعذر تفعيل البصمة'));return}
-S.k.bio=true;await saveK();ok(L('تم تفعيل الدخول بالبصمة ✓'));refresh()};
+ACT.bioSet=async()=>{if(S.k.bio){S.k.bio=false;S.k.bioId='';await saveK();ok(L('تم إيقاف {n}',{n:bioName()}));refresh();return}if(!S.k.pin){warn(L('فعّل رمز PIN أولًا — البصمة تُستخدم معه'));return}const a=await bioAvail();
+try{if(a==='nat')await capCall('NativeBiometric','verifyIdentity',{reason:bioName(),title:'KOPT X',subtitle:L({face:'انظر إلى الهاتف للتأكيد',finger:'ضع إصبعك للتأكيد'}[BIOK()]||'استخدم البصمة أو الوجه للتأكيد'),negativeButtonText:L('إلغاء')});
+else if(a==='web'){const c=await navigator.credentials.create({publicKey:{challenge:rnd(32),rp:{name:'KOPT X'},user:{id:rnd(16),name:'koptan',displayName:'KOPT X'},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},attestation:'none',timeout:60000}});S.k.bioId=b64(c.rawId)}else return warn(L('البصمة أو الوجه غير متاح على هذا الجهاز'))}
+catch(e){if(!cancelled(e)&&!(e&&e.name==='NotAllowedError'))warn(L('تعذر تفعيل {n}',{n:bioName()}));return}
+S.k.bio=true;await saveK();ok(L('تم تفعيل {n} ✓',{n:bioName()}));refresh()};
 
 /* =================== automatic backups =================== */
 /* 3 rotating in-app snapshots (data only, no photos) stored as records "snap0..2" in the existing "k" store,
@@ -173,6 +177,7 @@ document.addEventListener('click',async e=>{const b=e.target.closest&&e.target.c
 /* =================== what's new: one notification per installed update =================== */
 /* newest first; add an entry with every release (Arabic source, EN in i18n.js) */
 const CHANGES=[
+{v:'9.6.0',d:'2026-11-06',n:['الاسم والأيقونة لطريقة الفتح حسب هاتفك: الوجه أو البصمة']},
 {v:'9.5.0',d:'2026-11-06',n:['هوية جديدة: الاسم KOPT X وأيقونة جديدة']},
 {v:'9.4.0',d:'2026-11-06',n:['إشعار «ما الجديد» يظهر بعد كل تحديث','زر الرجوع في الهاتف يعود إلى الشاشة السابقة بدل الخروج','اضغط رجوع مرتين في الرئيسية للخروج من التطبيق']},
 {v:'9.3.1',d:'2026-11-06',n:['الفاتورة بتصميم داكن احترافي','المبالغ والخصم تظهر بالاتجاه الصحيح في الفاتورة']},
