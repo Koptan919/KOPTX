@@ -227,7 +227,7 @@ Rules:
 - The owner sent a new icon (white K with a burgundy stroke on near-black, 1024²) and a wordmark “KOPT X — Business Manager”, and chose **icon + rename to KOPT X**.
 - `icon-192.png` / `icon-512.png` regenerated from the owner's 1024² PNG (PIL LANCZOS). Used by the PWA, favicon/apple-touch, lock screen, settings store card, About, the invoice image, the APK launcher and the iOS icon (both workflows copy them).
 - Visible name → **KOPT X**: `<title>`, meta description, manifest `name`/`short_name`, header (`#ttl` on Home = `KOPT <i class="tx">X</i>`, X in the `--burg` gradient), lock screen, About, More footer, default store name (`S.k.biz||'KOPT X'`) in invoice/WhatsApp text/daily summary/supplier order, invoice footer, biometric prompt titles, WebAuthn rp name/displayName (existing credentials still work: rpId unchanged), backup error text. APK/IPA `cap init "KOPT X"` (launcher label; needs a new APK build).
-- **Kept on purpose (internal ids, do not rename):** appId `com.koptan.app`, IndexedDB `pbm`, `localStorage koptan.lang`, SW cache `koptan-v*`, backup field `app:'KOPTAN'`, update zip `koptan-<ver>.zip`, `KOPTAN.apk`/`.ipa` asset names, repo/URL `Koptan`, WebAuthn user name `koptan`. Changing the appId would stop APK updates.
+- **Kept on purpose (internal ids, do not rename):** appId `com.koptan.app`, IndexedDB `pbm`, `localStorage koptan.lang`, SW cache `koptan-v*`, backup field `app:'KOPTAN'`, update zip `koptan-<ver>.zip`, repo/URL `Koptan`, WebAuthn user name `koptan`. Changing the appId would stop APK updates.
 - `CHANGES` entry 9.5.0. Verified: `tests/run.sh shots` green (e2e 42/42, features 24/24, self-update, web auto-update, SW upgrade, no overflow). One run hit a timeout in the SW-upgrade offline reopen; 3 isolated reruns + a full rerun passed (timing flake, not caused by this change). Screenshots of home (AR), lock (EN) and invoice reviewed. Deployed 9.5.0; *Verify live site* run 42301327527 all PASS (version.json 9.5.0; bundle 221 KB, smaller because the new icons are lighter).
 
 ### 2026-11-06: permanent APK signing key active + APK 9.5.0 build 10
@@ -284,8 +284,8 @@ Then run the **Verify live site** workflow (GitHub Actions → `verify-pages.yml
 - Local round-trip test of the generate/encrypt/decrypt/fingerprint steps passed (keytool 17 + openssl). Not yet run on GitHub as of this entry.
 
 ### Native builds (GitHub Actions, `workflow_dispatch`, publish a Release)
-- **Build APK** (`build-apk.yml`): Capacitor 6 + camera/filesystem/share + `@capgo/capacitor-updater@6.25.6`; forces `androidx.work 2.9.1`; minSdk 23; permissions CAMERA, READ_MEDIA_IMAGES, READ_EXTERNAL_STORAGE(≤32); icon replaced; `versionName` = `APP_VER`, `versionCode` = 100 + run number; release-signed if `KEYSTORE_*` secrets exist, otherwise debug. Release tag `v<ver>-build-<n>`; direct link `https://github.com/Koptan919/Koptan/releases/download/<tag>/KOPTAN.apk`.
-- **Build IPA** (`build-ipa.yml`): macOS, Capacitor iOS, Info.plist usage strings, unsigned `KOPTAN.ipa`, tag `ios-v<ver>-build-<n>`.
+- **Build APK** (`build-apk.yml`): Capacitor 6 + camera/filesystem/share + `@capgo/capacitor-updater@6.25.6`; forces `androidx.work 2.9.1`; minSdk 23; permissions CAMERA, READ_MEDIA_IMAGES, READ_EXTERNAL_STORAGE(≤32); icon replaced; `versionName` = `APP_VER`, `versionCode` = 100 + run number; release-signed if `KEYSTORE_*` secrets exist, otherwise debug. Release tag `v<ver>-build-<n>`; direct link `https://github.com/Koptan919/Koptan/releases/download/<tag>/KOPTX.apk`.
+- **Build IPA** (`build-ipa.yml`): macOS, Capacitor iOS, Info.plist usage strings, unsigned `KOPTX.ipa`, tag `ios-v<ver>-build-<n>`.
 - Rebuild native only when plugins or native config change. Web changes reach APK users through self-update.
 
 ---
