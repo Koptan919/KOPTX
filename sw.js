@@ -1,6 +1,6 @@
 /* KOPTAN v9 service worker — offline-first. App data lives in IndexedDB and is never touched here. */
-const V='koptan-v9.0.2',Q='?v=902';
-const CORE=['./','index.html','manifest.json','icon-192.png','icon-512.png','app.css'+Q,'i18n.js'+Q,'core.js'+Q,'views.js'+Q,'more.js'+Q];
+const V='koptan-v9.1.0',Q='?v=910';
+const CORE=['./','index.html','manifest.json','icon-192.png','icon-512.png','app.css'+Q,'i18n.js'+Q,'core.js'+Q,'views.js'+Q,'more.js'+Q,'extra.js'+Q,...['arabic','latin'].flatMap(s=>['400','500','700','800'].map(n=>`fonts/tajawal-${s}-${n}-normal.woff2`))];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>Promise.all(CORE.map(u=>c.add(new Request(u,{cache:'reload'})).catch(()=>{})))).then(()=>self.skipWaiting()))});
 /* remove caches from older versions (pbm-v9 and earlier) */
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});

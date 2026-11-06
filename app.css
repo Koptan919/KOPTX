@@ -1,4 +1,13 @@
 /* KOPTAN v9 — Titanium × Burgundy Liquid Glass */
+/* Tajawal — bundled locally (SIL OFL 1.1, fonts/OFL-Tajawal.txt) so text looks the same offline and in the APK */
+@font-face{font-family:Tajawal;font-style:normal;font-display:swap;font-weight:400;src:url(fonts/tajawal-arabic-400-normal.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC}
+@font-face{font-family:Tajawal;font-style:normal;font-display:swap;font-weight:400;src:url(fonts/tajawal-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:Tajawal;font-style:normal;font-display:swap;font-weight:500;src:url(fonts/tajawal-arabic-500-normal.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC}
+@font-face{font-family:Tajawal;font-style:normal;font-display:swap;font-weight:500;src:url(fonts/tajawal-latin-500-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:Tajawal;font-style:normal;font-display:swap;font-weight:700;src:url(fonts/tajawal-arabic-700-normal.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC}
+@font-face{font-family:Tajawal;font-style:normal;font-display:swap;font-weight:700;src:url(fonts/tajawal-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:Tajawal;font-style:normal;font-display:swap;font-weight:800;src:url(fonts/tajawal-arabic-800-normal.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC}
+@font-face{font-family:Tajawal;font-style:normal;font-display:swap;font-weight:800;src:url(fonts/tajawal-latin-800-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 :root{color-scheme:dark;
 --bg:#0b0c0f;--bg2:#121318;--tx:#f4f4f6;--mu:#a6aab3;--mu2:#767a84;
 --ti:#cfd3da;--ti2:#8d929b;--ti3:#3c4048;
@@ -205,7 +214,7 @@ select option{background:#1a1b20;color:var(--tx)}
 .dots{display:flex;gap:5px;justify-content:center;margin-bottom:6px}.dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.3)}
 .pdh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin:8px 2px 12px}.pdh h1{font-size:22px;overflow-wrap:anywhere}
 .k4{grid-template-columns:1fr 1fr}
-.acts{display:flex;gap:8px;margin-bottom:14px}.acts .btn{flex:1;padding:0 10px}.acts .ib2{flex:none;width:52px;padding:0}
+.acts{display:flex;gap:8px;margin-bottom:14px}.acts .btn{flex:1 1 0;min-width:0;padding:0 8px;gap:5px;overflow:hidden}.acts .btn .si{width:17px;height:17px}.acts .ib2{flex:none;width:48px;padding:0}
 .cts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.cts.c4{grid-template-columns:repeat(2,1fr)}
 .cb{min-height:52px;border-radius:15px;border:1px solid var(--gbd);background:rgba(255,255,255,.06);color:var(--tx);display:flex;align-items:center;justify-content:center;gap:7px;font-weight:700;font-size:13.5px;text-decoration:none;white-space:nowrap;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
 .cb .si{width:20px;height:20px}.cb.tel{color:#b9d4ff}.cb.wa{background:linear-gradient(140deg,rgba(37,211,102,.25),rgba(18,140,126,.25));border-color:rgba(37,211,102,.55);color:#25D366}.cb.link{color:var(--ti)}.cb.map{color:var(--bu4)}.cb.off{opacity:.45}
@@ -295,3 +304,12 @@ nav button span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-spac
 .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.pk{height:62px;border-radius:20px;font-size:25px;font-weight:700;color:var(--tx);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.16);display:grid;place-items:center;touch-action:manipulation}.pk:active{background:rgba(201,65,106,.35)}.pk.ok{background:var(--burg);color:#fff;border-color:rgba(232,130,159,.4)}.pk.dl{color:var(--mu)}.pk .si{width:26px;height:26px}
 @media print{.top,nav,.fab,.hdr,.ft,.toast,.bar,.amb{display:none!important}body{padding:0;background:#fff;color:#000}.pg{position:static;background:#fff;color:#000}.pg .sc{overflow:visible}}
 @media (min-width:700px){.fab{right:calc(50% - 330px)}}
+/* v9.1: goal, scanner, invoice, reorder, settings fields */
+.goal{padding:12px 14px;margin-bottom:12px}.goal-h{display:flex;justify-content:space-between;align-items:center;font-weight:700;margin-bottom:8px}.goal-h span{display:flex;align-items:center;gap:7px}.goal-h .si{color:var(--bu4);width:19px;height:19px}.goal-h b{font-size:16px}
+.gbar{height:10px;border-radius:8px;background:rgba(255,255,255,.08);overflow:hidden;margin-bottom:7px}.gbar i{display:block;height:100%;border-radius:8px;background:var(--burg);box-shadow:0 0 12px rgba(201,65,106,.5);transition:width .6s cubic-bezier(.2,.8,.2,1)}.goal.done .gbar i{background:linear-gradient(90deg,#2a9d6a,#42d293)}.goal small{font-size:12.5px}
+.scanv{position:relative;border-radius:18px;overflow:hidden;background:#000;aspect-ratio:4/3;margin-bottom:8px;border:1px solid var(--gbd)}.scanv video{width:100%;height:100%;object-fit:cover;display:block}.scanl{position:absolute;left:10%;right:10%;top:50%;height:2px;background:var(--bu3);box-shadow:0 0 14px var(--bu3);animation:scl 1.6s ease-in-out infinite alternate}@keyframes scl{from{transform:translateY(-60px)}to{transform:translateY(60px)}}
+.sb select.selw{flex:1;min-width:0;min-height:52px;border-radius:15px;padding:10px 14px;background:rgba(0,0,0,.25);border:1px solid var(--gbd);font-size:16px}.fl .sb{margin:0}.fl .sb input{flex:1}
+.invp{width:100%;border-radius:16px;border:1px solid var(--gbd);display:block;margin:4px 0 8px}.bar .cb{flex:1 1 auto;padding:0 14px}
+.inl.wide{width:150px;text-align:start!important}.inl.sm{width:72px;min-height:42px;flex:none}
+.og{padding:12px}.orow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07)}.orow .t{flex:1;min-width:0;display:flex;flex-direction:column}.orow .t b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.orow .t small{font-size:12px}.ock input{width:22px;height:22px;accent-color:var(--bu3)}
+.btn.bio{margin:0 0 14px}.btn .wa-i{width:19px;height:19px}.mt{margin-top:12px}
