@@ -206,7 +206,7 @@ Rules:
   - Values open edit sheets (`EDIT` + `editK` in extra.js; numbers accept Arabic digits/decimal `٫` via `numIn`).
   - New sections: Invoice, Currency & goals, Look & feel. Rows wrap at 320px.
 - New optional settings: `bizAddr, bizTax, invNote, invN, vibLv`.
-- Verified: `tests/run.sh shots` → e2e 42/42, features 20/20 (new F19 invoice numbering/status/footer, F20 strength + old-APK diagnosis; F2/F14 use the edit sheets), self-update, web auto-update, SW upgrade, no overflow. Invoice and settings screenshots reviewed.
+- Verified: `tests/run.sh shots` → e2e 42/42, features 20/20 (new F19 invoice numbering/status/footer, F20 strength + old-APK diagnosis; F2/F14 use the edit sheets), self-update, web auto-update, SW upgrade, no overflow. Invoice and settings screenshots reviewed. Deployed 9.3.0; *Verify live site* run #7 success. No APK rebuild needed (haptics plugin already in APK 9.2.0-build-9).
 
 ---
 
