@@ -171,6 +171,7 @@ Rules:
 - Settings: store name/phone, goal, summary time, reorder lead days, auto-backup frequency, fingerprint.
 - APK workflow adds `@capacitor/local-notifications@6.1.3`, `@capgo/capacitor-native-biometric@6.0.4` (both compileSdk 34) + POST_NOTIFICATIONS/USE_BIOMETRIC permissions. Copies `extra.js` and `fonts/`.
 - Fixed during testing: product-page buttons overflowed at 320px once the real font loaded → `.acts .btn{flex:1 1 0;min-width:0}`. Invoice needed the 500 weight preloaded.
+- Deployed 9.1.0 (bundle 328 KB); live check all PASS. **Build APK run #8 succeeded** → release `v9.1.0-build-8` (still debug-signed: `KEYSTORE_PASSWORD` not added yet).
 - Verified: `tests/run.sh shots` → e2e 42/42, features 17/17 (WebAuthn via Chromium virtual authenticator, camera via fake device + mocked BarcodeDetector, native plugins mocked), self-update, SW upgrade from the pre-v9 app, no overflow at 320/360/412.
 
 ---
