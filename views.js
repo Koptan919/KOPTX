@@ -38,10 +38,13 @@ ${goalHTML()}<button class="alert mu" data-act="daySum">${SV(LU.cal)}<span>${L('
 ${chartHTML('home')}
 <div class="sh"><h2>${L('آخر العمليات')}</h2>${S.s.length+S.e.length+S.d.length?`<button data-act="timeline">${L('عرض الكل')}</button>`:''}</div>${opsList(5)}</div>`}
 ACT.go=t=>go(t);ACT.lowgo=()=>{pf_='low';go('box')};
-function opsAll(){return[...S.s.map(s=>({t:s.date,k:'s',id:s.id,ti:s.name+' × '+s.qty,v:'+'+fmt(sRev(s)),c:'g'})),...S.e.map(e=>({t:e.date,k:'e',id:e.id,ti:expName(e),v:'−'+fmt(e.amt),c:'o'})),...S.d.flatMap(d=>[{t:d.date,k:'d',id:d.id,ti:(d.type==='in'?L('دين لي: {n}',{n:d.who}):L('دين عليّ: {n}',{n:d.who})),v:fd(d,d.amt),c:'ti'},...(d.pays||[]).map(y=>({t:y.date,k:'d',id:d.id,ti:(d.type==='in'?L('تحصيل من {n}',{n:d.who}):L('سداد إلى {n}',{n:d.who})),v:fd(d,y.amt),c:'ti'}))])].sort((x,y)=>y.t-x.t)}
-function opsList(n){const IK={s:[LU.cart,'g'],e:[LU.receipt,'o'],d:[LU.hand,'tn']},go_={s:'sale',e:'exp',d:'debt'};const a=opsAll().slice(0,n);
+/* activity feed: sort lightweight refs (cached per data version), format only the rows shown */
+function opsAll(n){const refs=memo('ops',()=>{const a=[];for(const x of S.s)a.push({t:x.date,k:'s',o:x});for(const x of S.e)a.push({t:x.date,k:'e',o:x});for(const d of S.d){a.push({t:d.date,k:'d',o:d});for(const y of d.pays||[])a.push({t:y.date,k:'p',o:d,y})}return a.sort((x,y)=>y.t-x.t)});
+return refs.slice(0,n).map(r=>{const o=r.o;if(r.k==='s')return{t:r.t,k:'s',id:o.id,ti:o.name+' × '+o.qty,v:'+'+fmt(sRev(o)),c:'g'};if(r.k==='e')return{t:r.t,k:'e',id:o.id,ti:expName(o),v:'−'+fmt(o.amt),c:'o'};
+if(r.k==='d')return{t:r.t,k:'d',id:o.id,ti:o.type==='in'?L('دين لي: {n}',{n:o.who}):L('دين عليّ: {n}',{n:o.who}),v:fd(o,o.amt),c:'ti'};return{t:r.t,k:'d',id:o.id,ti:o.type==='in'?L('تحصيل من {n}',{n:o.who}):L('سداد إلى {n}',{n:o.who}),v:fd(o,r.y.amt),c:'ti'}})}
+function opsList(n){const IK={s:[LU.cart,'g'],e:[LU.receipt,'o'],d:[LU.hand,'tn']},go_={s:'sale',e:'exp',d:'debt'};const a=opsAll(n);
 return a.length?`<div class="list">${a.map(o=>`<button class="row" data-act="${go_[o.k]}" data-id="${o.id}"><span class="th ${IK[o.k][1]}">${SV(IK[o.k][0])}</span><span class="t"><b>${esc(o.ti)}</b><small>${day(o.t)}</small></span><b class="amt ${o.c}">${o.v}</b></button>`).join('')}</div>`:emptyS(LU.spark,L('لا عمليات بعد'),L('اضغط زر + لإضافة منتج أو تسجيل بيع'))}
-ACT.timeline=()=>{const ev=opsAll().slice(0,200);let last='';sheet(`<h2 class="sh-h">${L('سجل العمليات')}</h2>`+(ev.map(o=>{const d=day(o.t),h=d!==last?(last=d,`<div class="tl-d">${d}</div>`):'';return h+`<div class="kv"><span>${esc(o.ti)}</span><b class="${o.c}">${o.v}</b></div>`}).join('')||`<div class="sub">${L('لا عمليات بعد')}</div>`),'tall')};
+ACT.timeline=()=>{const ev=opsAll(200);let last='';sheet(`<h2 class="sh-h">${L('سجل العمليات')}</h2>`+(ev.map(o=>{const d=day(o.t),h=d!==last?(last=d,`<div class="tl-d">${d}</div>`):'';return h+`<div class="kv"><span>${esc(o.ti)}</span><b class="${o.c}">${o.v}</b></div>`}).join('')||`<div class="sub">${L('لا عمليات بعد')}</div>`),'tall')};
 
 /* =================== PROFIT CHART (interactive, live from real records) =================== */
 const CHM=[['net','الأرباح'],['rev','المبيعات'],['ex','المصاريف']],CHR=[['d','يومي'],['w','أسبوعي'],['m','شهري'],['y','سنوي']];

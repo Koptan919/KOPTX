@@ -1,7 +1,7 @@
 /* KOPTAN · مدير أعمالي — v9 Titanium Liquid Glass
    core: i18n, state, storage (IndexedDB "pbm" v5 — unchanged schema, fully compatible), formatting, UI primitives, images, files. */
 'use strict';
-const APP_VER='9.1.1';
+const APP_VER='9.2.0';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -94,8 +94,11 @@ const STORES=['p','s','e','l','t','d','sp'];
 function openDB(){return new Promise((res,rej)=>{try{const r=indexedDB.open('pbm',5);r.onupgradeneeded=()=>{['p','s','e','k','l','t','d','img','sp'].forEach(n=>{if(!r.result.objectStoreNames.contains(n))r.result.createObjectStore(n,{keyPath:'id'})})};r.onsuccess=()=>{db=r.result;res()};r.onerror=()=>rej(r.error);r.onblocked=()=>rej(new Error('blocked'))}catch(e){rej(e)}})}
 const tx=(st,m)=>db.transaction(st,m).objectStore(st);
 const rq=r=>new Promise((a,b)=>{r.onsuccess=()=>a(r.result);r.onerror=()=>b(r.error)});
-async function put(st,o){if(memOnly)return;try{await rq(tx(st,'readwrite').put(o))}catch(e){toast(L('تعذر الحفظ')+': '+(e&&e.name||''),'w')}}
-async function del(st,id){if(memOnly)return;try{await rq(tx(st,'readwrite').delete(id))}catch(e){toast(L('تعذر الحذف'),'w')}}
+/* data version: bumped on every write, used to cache derived results (notifications, reorder, customers, activity) */
+let DV=0;const MEMO=new Map();
+function memo(key,fn){const k=key+'|'+DV+'|'+sod()+'|'+LANG,h=MEMO.get(key);if(h&&h.k===k)return h.v;const v=fn();MEMO.set(key,{k,v});return v}
+async function put(st,o){DV++;if(memOnly)return;try{await rq(tx(st,'readwrite').put(o))}catch(e){toast(L('تعذر الحفظ')+': '+(e&&e.name||''),'w')}}
+async function del(st,id){DV++;if(memOnly)return;try{await rq(tx(st,'readwrite').delete(id))}catch(e){toast(L('تعذر الحذف'),'w')}}
 let _skT=null;
 const saveK=()=>{clearTimeout(_skT);return put('k',{id:'k',...S.k})};
 const saveKSoon=()=>{clearTimeout(_skT);_skT=setTimeout(()=>put('k',{id:'k',...S.k}),400)};
@@ -113,15 +116,19 @@ function autoLite(){try{const m=navigator.deviceMemory,c=navigator.hardwareConcu
 
 /* ---------- formatting ---------- */
 const LRI='⁦',PDI='⁩';
-function fmt(v,cur){if(S.k.hide)return'••••';cur=cur||S.k.cur;v=+v||0;const l=cur==='LBP',n=l?v*S.k.rate:v,neg=n<0,a=Math.abs(n),s=l?Math.round(a).toLocaleString('en'):a.toLocaleString('en',{maximumFractionDigits:2});
+/* cached formatters: toLocaleString builds a new formatter on every call (slow with thousands of rows) */
+const NF0=new Intl.NumberFormat('en',{maximumFractionDigits:0}),NF2=new Intl.NumberFormat('en',{maximumFractionDigits:2});
+function fmt(v,cur){if(S.k.hide)return'••••';cur=cur||S.k.cur;v=+v||0;const l=cur==='LBP',n=l?v*S.k.rate:v,neg=n<0,a=Math.abs(n),s=l?NF0.format(Math.round(a)):NF2.format(a);
 let r;if(LANG==='en')r=(neg?'−':'')+(l?'LBP '+s:'$'+s);else r=(neg?'−':'')+s+(l?' ل.ل':' $');return LRI+r+PDI}
 const fmtS=v=>(v>0?'+':'')+fmt(v);
 const curLbl=c=>c==='LBP'?L('ل.ل'):'$';
-const fd=(d,v)=>{if(S.k.hide)return'••••';v=+v||0;const s=(d.cur==='LBP'?Math.round(v):num(v)).toLocaleString('en');return LRI+(LANG==='en'?(d.cur==='LBP'?'LBP '+s:'$'+s):s+' '+(d.cur==='LBP'?'ل.ل':'$'))+PDI};
+const fd=(d,v)=>{if(S.k.hide)return'••••';v=+v||0;const s=d.cur==='LBP'?NF0.format(Math.round(v)):NF2.format(num(v));return LRI+(LANG==='en'?(d.cur==='LBP'?'LBP '+s:'$'+s):s+' '+(d.cur==='LBP'?'ل.ل':'$'))+PDI};
 const altC=v=>{if(S.k.hide||!S.k.rate)return'';return fmt(v,S.k.cur==='LBP'?'USD':'LBP')};
-const day=t=>t?new Date(t).toLocaleDateString(loc(),{day:'numeric',month:'short',year:'numeric'}):'—';
-const dayS=t=>new Date(t).toLocaleDateString(loc(),{day:'numeric',month:'short'});
-const dtm=t=>t?new Date(t).toLocaleString(loc(),{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+/* cached date formatters per language */
+const DFC={};const DF=(n,o)=>{const k=LANG+n;return DFC[k]||(DFC[k]=new Intl.DateTimeFormat(loc(),o))};
+const day=t=>t?DF('d',{day:'numeric',month:'short',year:'numeric'}).format(t):'—';
+const dayS=t=>DF('s',{day:'numeric',month:'short'}).format(t);
+const dtm=t=>t?DF('t',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).format(t):'—';
 const sod=(d=new Date())=>new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
 const toTs=s=>s?new Date(s+'T12:00').getTime():0;
 const toDs=t=>{if(!t)return'';const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
@@ -136,12 +143,21 @@ const dPaid=d=>(d.pays||[]).reduce((a,p)=>a+(+p.amt||0),0),dRem=d=>num(d.amt-dPa
 function AGG(a,b){let rev=0,gp=0,ex=0,n=0;for(const x of S.s)if(x.date>=a&&x.date<b){rev+=sRev(x);gp+=prof(x);n++}for(const x of S.e)if(x.date>=a&&x.date<b)ex+=+x.amt||0;return{rev,gp,ex,net:gp-ex,n}}
 
 /* ---------- feedback ---------- */
-const buzz=(n=12)=>{try{S.k.vib!==false&&navigator.vibrate&&navigator.vibrate(n)}catch(e){}};
+/* haptics: Android native Haptics plugin (precise, needs no extra permission) → browser vibrate fallback.
+   kinds: select (very light), tap, press, heavy, success, warning, error. Rapid duplicates are merged; stronger feedback wins. */
+const HAP={select:[5,'LIGHT'],tap:[9,'LIGHT'],press:[14,'MEDIUM'],heavy:[26,'HEAVY'],success:[[10,45,16],'SUCCESS'],warning:[[22,60,22],'WARNING'],error:[[35,45,35,45,55],'ERROR']},HPR={select:0,tap:1,press:2,success:3,warning:3,heavy:4,error:5};
+let hapT=0,hapP=-1;
+function hap(k){if(S.k.vib===false)return;const h=HAP[k]||HAP.tap,pr=HPR[k]??1,now=performance.now();if(now-hapT<90&&pr<=hapP)return;hapT=now;hapP=pr;
+try{if(window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Haptics){const P=Capacitor.Plugins.Haptics;(h[1]==='SUCCESS'||h[1]==='WARNING'||h[1]==='ERROR'?P.notification({type:h[1]}):P.impact({style:h[1]})).catch(()=>{});return}
+if(navigator.vibrate&&(!navigator.userActivation||navigator.userActivation.hasBeenActive))navigator.vibrate(h[0])}catch(e){}}
+const buzz=(n=12)=>hap(n>=50?'error':n>=20?'heavy':n<=6?'select':n<=10?'tap':'press');
+/* light tap on every press of an interactive element (specific actions add stronger feedback) */
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('button,a,[role=button],summary,.row,.pc,label.opt');if(t&&!t.disabled)hap('tap')},true);
 function toast(m,k='',act){$$('.toast:not(.ld)').forEach(x=>x.remove());const t=document.createElement('div');t.className='toast gl '+k;t.setAttribute('role','status');
 t.innerHTML=(k==='ok'?SV(LU.cok):k==='w'?SV(LU.warn):'')+'<span></span>'+(act?`<button class="tbtn">${SV(act.icon||LU.undo)}<b></b></button>`:'');t.querySelector('span').textContent=String(m);
 let gone=false;const out=()=>{if(gone)return;gone=true;t.classList.add('out');setTimeout(()=>t.remove(),220);act&&act.end&&act.end()};
 if(act){t.querySelector('b').textContent=act.label;t.querySelector('.tbtn').onclick=()=>{if(gone)return;gone=true;t.remove();act.fn()}}
-document.body.append(t);setTimeout(out,act?(act.ms||6500):2600);return t}
+document.body.append(t);if(k==='ok')hap('success');else if(k==='w')hap('warning');setTimeout(out,act?(act.ms||6500):2600);return t}
 const ok=m=>toast(m,'ok'),warn=m=>toast(m,'w');
 function toastP(m){const t=document.createElement('div');t.className='toast gl ld';t.innerHTML='<i class="spin"></i><span></span>';t.lastChild.textContent=m;document.body.append(t);return()=>t.remove()}
 
@@ -162,7 +178,7 @@ document.body.append(b);return b}
 const closeSheets=()=>$$('.sheet-bg').forEach(x=>x.remove());
 /* confirm dialog. o:{yes,no,danger,alt:[label,fn],sub} */
 function confirmBox(msg,yes,o={}){const b=sheet(`<div class="cf"><div class="cf-i ${o.danger===false?'':'dg'}">${SV(o.icon||LU.warn)}</div><h2>${esc(msg)}</h2>${o.sub?`<p class="sub">${esc(o.sub)}</p>`:''}<div class="cf-b"><button class="btn ${o.danger===false?'p':'d'}" data-y>${esc(o.yes||L('تأكيد'))}</button>${o.alt?`<button class="btn" data-a>${esc(o.alt[0])}</button>`:''}<button class="btn ghost" data-n>${esc(o.no||L('إلغاء'))}</button></div></div>`);
-b.querySelector('[data-n]').onclick=()=>closeEl(b);b.querySelector('[data-y]').onclick=()=>{b.remove();yes()};if(o.alt)b.querySelector('[data-a]').onclick=()=>{b.remove();o.alt[1]()};return b}
+b.querySelector('[data-n]').onclick=()=>closeEl(b);b.querySelector('[data-y]').onclick=()=>{if(o.danger!==false)hap('heavy');b.remove();yes()};if(o.alt)b.querySelector('[data-a]').onclick=()=>{b.remove();o.alt[1]()};return b}
 
 /* ---------- full-screen pages ---------- */
 /* shell: a read/navigate page. fill() re-renders its body (used for live refresh after data changes) */
