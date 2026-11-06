@@ -299,5 +299,10 @@ window.EN={
 "حفظ نسخة كاملة الآن":"Save a full backup now",
 "لاحقًا":"Later",
 "آخر نسخة: {d}. احفظها في Google Drive أو أرسلها لنفسك على واتساب حتى لا تضيع بياناتك مع الهاتف.":"Last backup: {d}. Save it to Google Drive or send it to yourself on WhatsApp so your data isn’t lost with the phone.",
-"أدخل رقمًا صحيحًا":"Enter a valid number"
+"أدخل رقمًا صحيحًا":"Enter a valid number",
+"سيُكمَل تحديث التطبيق بعد إغلاق النموذج المفتوح":"The app will finish updating after you close the open form",
+"جارٍ تحديث التطبيق إلى الإصدار {v}…":"Updating the app to version {v}…",
+"تم تنزيل التحديث {v} — جارٍ إعادة التشغيل…":"Update {v} downloaded — restarting…",
+"جارٍ تحديث التطبيق…":"Updating the app…",
+"التطبيق محدّث إلى آخر إصدار ✓":"The app is up to date ✓"
 };

@@ -210,16 +210,20 @@ document.addEventListener('keydown',kd,true);dots()}
 const UPD_URL='https://koptan919.github.io/Koptan/version.json';
 const newer=(a,b)=>{const x=String(a||'').split('.').map(n=>+n||0),y=String(b||'').split('.').map(n=>+n||0);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return(x[i]||0)>(y[i]||0)}return false};
 let updBusy=false,updAt=0;
+/* apply only when no form is open, so unsaved input is never lost */
+function whenIdle(fn){if(!$('.pg .ft'))return fn();toast(L('سيُكمَل تحديث التطبيق بعد إغلاق النموذج المفتوح'));const o=new MutationObserver(()=>{if(!$('.pg .ft')){o.disconnect();fn()}});o.observe(document.body,{childList:true})}
 async function selfUpdate(manual){if(!hasPl('CapacitorUpdater')){if(manual)ok(L('هذه النسخة تتحدّث تلقائيًا عند فتحها مع الإنترنت ✓'));return}
-if(updBusy)return;if(!manual&&Date.now()-updAt<3600e3)return;updBusy=true;updAt=Date.now();let done=null;
-try{const r=await fetch(UPD_URL+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('http '+r.status);const j=await r.json();
+if(updBusy)return;if(!manual&&Date.now()-updAt<3600e3)return;updBusy=true;let done=null;
+try{const r=await fetch(UPD_URL+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('http '+r.status);const j=await r.json();updAt=Date.now();
 if(!j||!j.version||!j.zip||!newer(j.version,APP_VER)){if(manual)ok(L('لديك أحدث إصدار ({v}) ✓',{v:APP_VER}));return}
-if(manual)done=toastP(L('جارٍ تنزيل التحديث {v}…',{v:j.version}));
-const b=await capCall('CapacitorUpdater','download',{url:j.zip,version:j.version});done&&done();done=null;
+done=toastP(L('جارٍ تحديث التطبيق إلى الإصدار {v}…',{v:j.version}));
+const b=await capCall('CapacitorUpdater','download',{url:j.zip,version:j.version});done();done=null;
+/* "next" first: if anything interrupts, the update still applies on the next launch */
 await capCall('CapacitorUpdater','next',{id:b.id});
-toast(L('التحديث {v} جاهز — يُطبَّق عند إعادة فتح التطبيق',{v:j.version}),'ok',{label:L('تحديث الآن'),icon:LU.repl,ms:12000,fn:()=>{if($('.pg .ft'))return confirmBox(L('لديك نموذج مفتوح. تطبيق التحديث الآن سيغلقه.'),()=>capCall('CapacitorUpdater','set',{id:b.id}),{danger:false,yes:L('تحديث الآن')});capCall('CapacitorUpdater','set',{id:b.id})}})}
-catch(e){console.warn('update',e);if(manual)warn(L('تعذر التحقق من التحديثات — تأكد من الاتصال بالإنترنت'))}
+whenIdle(()=>{toast(L('تم تنزيل التحديث {v} — جارٍ إعادة التشغيل…',{v:j.version}),'ok');setTimeout(()=>capCall('CapacitorUpdater','set',{id:b.id}).catch(()=>{}),1500)})}
+catch(e){console.warn('update',e);updAt=0;if(manual)warn(L('تعذر التحقق من التحديثات — تأكد من الاتصال بالإنترنت'))}
 finally{done&&done();updBusy=false}}
+addEventListener('online',()=>selfUpdate(false));
 ACT.upd=()=>selfUpdate(true);
 
 /* =================== REPORTS =================== */
@@ -323,4 +327,8 @@ try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}ca
 load().then(async()=>{applyPrefs();buildChrome();await migImgs();await migSup();await runRec();if(S.k.pin)lock();if(memOnly)warn(L('التخزين غير متاح هنا: البيانات مؤقتة'));render(true);sweepImgs();try{afterBoot()}catch(e){console.error(e)}if(hasPl('CapacitorUpdater')){capCall('CapacitorUpdater','notifyAppReady').catch(()=>{});setTimeout(()=>selfUpdate(false),2500)}
 const od=S.d.filter(d=>!d.arch&&dRem(d)>0&&d.due&&d.due<sod());if(od.length)setTimeout(()=>toast(plural(od.length,'لديك {n} دين متأخر','لديك {n} ديون متأخرة'),'w'),900);
 const a=new URLSearchParams(location.search).get('a'),A={prod:addProduct,sale:()=>salePage(),exp:addExpense,debt:()=>debtPage()}[a];if(A&&!S.k.pin)setTimeout(()=>A(),300);document.body.classList.add('ready')});
-if('serviceWorker'in navigator&&/^https?:/.test(location.protocol)&&!NAT()){const hadCtl=!!navigator.serviceWorker.controller;navigator.serviceWorker.register('sw.js').then(r=>{r.addEventListener('updatefound',()=>{const w=r.installing;w&&w.addEventListener('statechange',()=>{if(w.state==='activated'&&hadCtl)toast(L('تم تحديث التطبيق إلى أحدث إصدار ✓'),'ok')})})}).catch(()=>{})}
+/* browser / home-screen app: check when opened, on return and when back online; show a notice and reload only if a newer version is live */
+if('serviceWorker'in navigator&&/^https?:/.test(location.protocol)&&!NAT()){const hadCtl=!!navigator.serviceWorker.controller;navigator.serviceWorker.register('sw.js').then(r=>{const chk=()=>r.update().catch(()=>{});addEventListener('online',chk);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});
+r.addEventListener('updatefound',()=>{const w=r.installing;if(!w||!hadCtl)return;const done=toastP(L('جارٍ تحديث التطبيق…'));w.addEventListener('statechange',async()=>{if(w.state==='redundant')return done();if(w.state!=='activated')return;done();
+let v='';try{v=(await(await fetch('version.json?t='+Date.now(),{cache:'no-store'})).json()).version}catch(e){}
+if(v&&newer(v,APP_VER))whenIdle(()=>{toast(L('تم تنزيل التحديث {v} — جارٍ إعادة التشغيل…',{v}),'ok');setTimeout(()=>location.reload(),1200)});else ok(L('التطبيق محدّث إلى آخر إصدار ✓'))})})}).catch(()=>{})}
