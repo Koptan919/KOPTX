@@ -42,4 +42,12 @@ await step('F16 English UI for new screens has no untranslated Arabic',async()=>
 await ev(()=>go('home'));await W(300);await scan('home');for(const s of ['cus','reo','set','data']){await ev(s=>openSub(s),s);await W(600);await scan(s);await clr()}await ev(()=>ACT.daySum());await W(200);await scan('daysum');await clr();await ev(()=>ACT.scanP());await W(300);await scan('scan');await clr();
 await p.screenshot({path:SH+'/feat-en-home.png'});await ev(()=>setLang('ar'));ok(bad.length===0,bad.join(' | '))});
 await step('F17 no JS errors',async()=>{ok(errs.length===0,errs.join(' | '))});
+await step('F18 haptics: tap on press, success on save, heavy on delete confirm, none when turned off',async()=>{const c2=await b.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true});const q=await c2.newPage();
+await q.addInitScript(()=>{window.__h=[];window.Capacitor={isNativePlatform:()=>true,Plugins:{Haptics:{impact:async o=>{window.__h.push('impact:'+o.style)},notification:async o=>{window.__h.push('notif:'+o.type)}}}}});
+await q.goto(URL);await q.waitForSelector('body.ready');await q.waitForTimeout(400);const H=()=>q.evaluate(()=>window.__h.slice());
+await q.click('#nav [data-t=box]');await q.waitForTimeout(150);ok((await H()).includes('impact:LIGHT'),'tap → light impact '+(await H()));
+await q.evaluate(()=>{window.__h=[];ok('x')});await q.waitForTimeout(150);ok((await H()).includes('notif:SUCCESS'),'success toast → success haptic');
+await q.evaluate(()=>{window.__h=[];confirmBox('del?',()=>{})});await q.waitForTimeout(300);await q.click('.sheet [data-y]');await q.waitForTimeout(150);ok((await H()).includes('impact:HEAVY'),'delete confirm → heavy '+(await H()));
+await q.evaluate(()=>{window.__h=[];warn('x')});await q.waitForTimeout(150);ok((await H()).includes('notif:WARNING'),'warning haptic');
+await q.evaluate(async()=>{S.k.vib=false;window.__h=[]});await q.waitForTimeout(150);await q.click('#nav [data-t=cart]');await q.evaluate(()=>ok('y'));await q.waitForTimeout(150);ok((await H()).length===0,'off → none '+(await H()));await c2.close()});
 console.log(R.join('\n'));console.log('PASSED',R.filter(x=>x.startsWith('PASS')).length,'/',R.length);await b.close()})();

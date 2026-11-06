@@ -304,5 +304,6 @@ window.EN={
 "جارٍ تحديث التطبيق إلى الإصدار {v}…":"Updating the app to version {v}…",
 "تم تنزيل التحديث {v} — جارٍ إعادة التشغيل…":"Update {v} downloaded — restarting…",
 "جارٍ تحديث التطبيق…":"Updating the app…",
-"التطبيق محدّث إلى آخر إصدار ✓":"The app is up to date ✓"
+"التطبيق محدّث إلى آخر إصدار ✓":"The app is up to date ✓",
+"الاهتزاز عند اللمس":"Haptic feedback","لمسة خفيفة عند الضغط، وتأكيد عند الحفظ، وتنبيه عند الأخطاء":"A light tap on press, a confirmation on save, an alert on errors"
 };

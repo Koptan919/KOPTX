@@ -23,7 +23,7 @@ jobs:
           VER=$(sed -n "s/^const APP_VER='\([0-9.]*\)'.*/\1/p" core.js); echo "VER=$VER" >> "$GITHUB_ENV"
           cd app
           npm init -y
-          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/camera@6 @capacitor/filesystem@6 @capacitor/share@6 @capacitor/local-notifications@6.1.3 @capgo/capacitor-updater@6.25.6 @capgo/capacitor-native-biometric@6.0.4
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/camera@6 @capacitor/filesystem@6 @capacitor/share@6 @capacitor/local-notifications@6.1.3 @capacitor/haptics@6.0.3 @capgo/capacitor-updater@6.25.6 @capgo/capacitor-native-biometric@6.0.4
           npx cap init KOPTAN com.koptan.app --web-dir www
           # self-update in manual mode: the app checks version.json on the live site; no third-party update server or stats
           node -e "const f='capacitor.config.json',c=require('./'+f);c.backgroundColor='#0b0c0f';c.android={backgroundColor:'#0b0c0f'};c.plugins={CapacitorUpdater:{autoUpdate:false,statsUrl:'',appReadyTimeout:15000,resetWhenUpdate:true}};require('fs').writeFileSync(f,JSON.stringify(c,null,2))"

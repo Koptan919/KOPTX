@@ -1,7 +1,7 @@
 # KOPTAN · مدير أعمالي — Project memory
 
 > Detailed, persistent context for future development sessions. The concise rules are in [CLAUDE.md](CLAUDE.md).
-> Last updated: 2026-11-06 · App version **9.1.1** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
+> Last updated: 2026-11-06 · App version **9.2.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
 
 ---
 
@@ -179,6 +179,19 @@ Rules:
 - Note: APKs running the 9.1.0 bundle receive 9.1.1 the old way (“Update now”/next launch). From 9.1.1 on, updates are automatic.
 - Verified: `tests/upd.js` rewritten (newer → auto set + both notices; form open → waits, applies after close; same → nothing; offline → silent, then the `online` event updates); `tests/sw-upgrade.js` publishes a fake next release while the page is open → notice + self-reload. Full `tests/run.sh` green (e2e 42/42, features 17/17). Deployed 9.1.1; *Verify live site* run #5 all PASS. No APK rebuild needed (web-layer change).
 
+### 2026-11-06: v9.2.0 smoother + haptics
+- **Measured first** (`tests/perf.js`, 400 products / 6000 sales / 300 debts / 400 expenses, desktop Chromium; phones are ~4–6× slower). Baseline: home render 101 ms, More 68, sales 64, refresh with a page open 84, notifications 10.5, reorder 8.5. Scrolling was already 60 fps.
+- **Causes and fixes:**
+  - `opsAll()` formatted every record to show 5 → it now sorts lightweight refs (memoized) and formats only the rows shown.
+  - `toLocaleString` / `toLocaleDateString` built a formatter on every call → cached `Intl.NumberFormat` (`NF0`, `NF2`) and `Intl.DateTimeFormat` (`DF`).
+  - Derived data is recomputed only after writes: `DV` counter bumped in `put`/`del`; `memo(key,fn)` keyed by DV + day + language; used for ops, notifications (`nfAll`), reorder (`sold30` single pass), customers.
+  - `refresh()` skips the hidden main view while a page is open and redraws when the last page closes (`mainDirty`).
+  - Search typing is batched per animation frame.
+- **Result:** home 6.9 ms (8.9 ms right after a data change), More 0.9 (2.8 cold), sales 10, refresh with a page open 3.
+- **CSS:** removed live `backdrop-filter` from cards (they sit on the static ambient gradient; pixel diff vs before ≈ 0%, kept on header/nav/sheets/toasts). Added `content-visibility:auto` on list rows/cards, `touch-action:manipulation`, GPU layers for `.amb`/pages/sheets, springy press transitions. All motion kept.
+- **Haptics:** `hap(kind)` in core.js: select / tap / press / heavy / success / warning / error. Uses the native `@capacitor/haptics@6.0.3` (APK) or `navigator.vibrate` (browser, only after user activation). Duplicates within 90 ms are merged and stronger feedback wins. Global light tap on every press; success/warning come from toasts; heavy on destructive confirm; error on wrong PIN; success on unlock. `buzz(n)` maps onto it. Setting “الاهتزاز عند اللمس”.
+- Verified: `tests/run.sh shots` all green (e2e 42/42, features 18/18 incl. new F18 haptics with a mocked plugin, self-update, web auto-update, SW upgrade, no overflow).
+
 ---
 
 ## 8. Known issues / pending
@@ -192,7 +205,7 @@ Rules:
 - Headless test browsers report few CPU cores, so `autoLite()` turns on performance mode. Set `S.k.lite=false` before taking design screenshots.
 - Soft-keyboard input of Arabic digits on the lock screen isn't testable in Playwright (it inserts text with no key event). Irrelevant now that the keypad is used.
 - **v9.1 native parts not verified on a real phone:** NativeBiometric prompt, LocalNotifications daily notification, camera barcode scanning inside the Android WebView (BarcodeDetector support in WebView is uncertain; manual entry is the fallback), invoice image sharing via the Share plugin.
-- Native features (fingerprint, daily notification) need the new APK; web features arrive by self-update.
+- Native features (fingerprint, daily notification, native haptics) need an APK built after they were added (haptics: v9.2.0+). Web features arrive by self-update. Haptics on a real phone are not verified yet.
 - Pending ideas: delta updates; iOS self-update; ML Kit barcode plugin if WebView lacks BarcodeDetector.
 
 ---
@@ -201,7 +214,8 @@ Rules:
 
 ### Test locally (needs Node + Playwright/Chromium; this cloud environment has them preinstalled)
 ```bash
-tests/run.sh          # 42 e2e checks + self-update (mocked native) + 17 v9.1 feature checks + SW upgrade from the pre-v9 app
+tests/run.sh          # 42 e2e checks + self-update (mocked native) + 18 feature checks + SW upgrade from the pre-v9 app
+node tests/perf.js    # large-dataset timings (needs the run.sh server on :8123); compare before/after performance work
 tests/run.sh shots    # + screenshots of every screen (320/412 ar, 360 en) and horizontal-overflow check
 node --check core.js views.js more.js i18n.js sw.js
 # translation coverage (prints missing keys; must be empty):

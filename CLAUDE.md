@@ -11,6 +11,7 @@ Ships as: a PWA on GitHub Pages (https://koptan919.github.io/Koptan/), an Androi
 - Every UI string goes through `L('Arabic source')` and needs an English entry in `i18n.js`. Use logical CSS (`inset-inline-*`, `margin-inline-*`) so RTL and LTR both work.
 - Keep the Titanium × Burgundy Liquid Glass look (tokens at the top of `app.css`). Keep `.lite` (performance mode) working: no live `backdrop-filter` there.
 - **APK signing key is permanent.** `signing/koptan.jks.enc` (AES-256, password = secret `KEYSTORE_PASSWORD`) + `signing/fingerprint-sha256.txt`. Never delete, regenerate or replace them. A new key means no APK can install over the user's app again. Never print or log the password.
+- Performance: derived data goes through `memo()` (invalidated by `DV`, bumped in `put`/`del`). Format numbers/dates with the cached `NF0/NF2/DF` and only for rows actually shown. No live `backdrop-filter` on cards (only floating layers).
 - Make the smallest change that does the job. Don't reformat or restructure files you aren't changing.
 
 ## Layout
@@ -19,7 +20,7 @@ Ships as: a PWA on GitHub Pages (https://koptan919.github.io/Koptan/), an Androi
 ## Releasing a change (all steps, in order)
 1. Bump `APP_VER` in `core.js`, `?v=NNN` in `index.html` (all 5 scripts + css) + `Q` in `sw.js`, cache name `V` in `sw.js`, `version` in `manifest.json`.
 2. `node --check core.js views.js more.js extra.js i18n.js sw.js`, then confirm every Arabic string has an EN entry (see PROJECT_MEMORY.md › Testing).
-3. `tests/run.sh` must pass (42 e2e + 17 feature checks + self-update + SW upgrade). Use `tests/run.sh shots` for UI changes and look at the screenshots.
+3. `tests/run.sh` must pass (42 e2e + 18 feature checks + self-update + SW upgrade). For performance work run `node tests/perf.js` before and after. Use `tests/run.sh shots` for UI changes and look at the screenshots.
 4. Commit on the working branch and push.
 5. Deploy: check out `gh-pages` in a worktree, run `tools/publish-web.sh <worktree>`, commit, push. This also publishes `version.json` + `koptan-<ver>.zip`, which installed APKs download as their update.
 6. Run the `Verify live site` workflow and read its log. Only claim success if every line says PASS.

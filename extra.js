@@ -63,7 +63,8 @@ b.querySelector('[data-sv]').onclick=()=>saveFile(name,blob,'image/png');new Mut
 ACT.inv=id=>invoice(id);
 
 /* =================== customers (derived from sales + debts owed to me) =================== */
-function customers(){const m=new Map(),add=(nm,ph)=>{const k=nkey(nm);if(!k)return null;let c=m.get(k);if(!c){c={k,name:String(nm).trim(),ph:'',n:0,rev:0,gp:0,units:0,last:0,ss:[],ds:[],inn:0,out:0,by:{}};m.set(k,c)}if(ph&&!c.ph)c.ph=ph;return c};
+function customers(){return memo('cus',customers0)}
+function customers0(){const m=new Map(),add=(nm,ph)=>{const k=nkey(nm);if(!k)return null;let c=m.get(k);if(!c){c={k,name:String(nm).trim(),ph:'',n:0,rev:0,gp:0,units:0,last:0,ss:[],ds:[],inn:0,out:0,by:{}};m.set(k,c)}if(ph&&!c.ph)c.ph=ph;return c};
 [...S.s].sort((a,b)=>b.date-a.date).forEach(s=>{if(!s.cust)return;const c=add(s.cust,s.cph);c.n++;c.rev+=sRev(s);c.gp+=prof(s);c.units+=s.qty;c.last=Math.max(c.last,s.date);c.ss.push(s);c.by[s.name]=(c.by[s.name]||0)+s.qty});
 S.d.forEach(d=>{const k=nkey(d.who);if(!m.has(k)&&d.type!=='in')return;const c=add(d.who,d.phone);if(!c)return;c.ds.push(d);if(!d.arch){const r=toU(d,Math.max(0,dRem(d)));d.type==='in'?c.inn+=r:c.out+=r}c.last=Math.max(c.last,d.date||0)});
 return[...m.values()].filter(c=>c.n>0||c.ds.some(d=>d.type==='in'))}
@@ -81,8 +82,11 @@ ${acc(SV(LU.cart)+L('المشتريات')+` (${c.ss.length})`,c.ss.length?`<div 
 el.addEventListener('click',e=>{const c=customers().find(x=>x.k===k);if(!c)return;if(e.target.closest('[data-ns]'))salePage(null,{cust:c.name,cph:c.ph});else if(e.target.closest('[data-pp]'))personPage(c.ds[0].who)})};
 
 /* =================== reorder suggestions (sales velocity, last 30 days) =================== */
-function velocity(p){const now=Date.now(),D=864e5,from=now-30*D,days=Math.max(7,Math.min(30,(now-(p.created||from))/D)),u=S.s.reduce((a,s)=>a+(s.pid===p.id&&s.date>=from?s.qty:0),0);return u/days}
-function reorderList(){const lead=+S.k.lead||7;return S.p.filter(p=>!p.arch).map(p=>{const v=velocity(p),left=v>0?p.qty/v:Infinity,low=p.qty<=p.min;if(!low&&!(left<lead))return null;const want=Math.max(Math.ceil(v*30),(+p.min||0)*2,1);return{p,v,left,sug:Math.max(1,want-p.qty)}}).filter(Boolean).sort((a,b)=>a.left-b.left||a.p.qty-b.p.qty)}
+/* units sold per product in the last 30 days — one pass over sales, cached per data version */
+const sold30=()=>memo('sold30',()=>{const from=Date.now()-30*864e5,m=new Map();for(const s of S.s)if(s.date>=from)m.set(s.pid,(m.get(s.pid)||0)+s.qty);return m});
+function velocity(p){const now=Date.now(),D=864e5,from=now-30*D,days=Math.max(7,Math.min(30,(now-(p.created||from))/D));return(sold30().get(p.id)||0)/days}
+function reorderList(){return memo('reo',reorderList0)}
+function reorderList0(){const lead=+S.k.lead||7;return S.p.filter(p=>!p.arch).map(p=>{const v=velocity(p),left=v>0?p.qty/v:Infinity,low=p.qty<=p.min;if(!low&&!(left<lead))return null;const want=Math.max(Math.ceil(v*30),(+p.min||0)*2,1);return{p,v,left,sug:Math.max(1,want-p.qty)}}).filter(Boolean).sort((a,b)=>a.left-b.left||a.p.qty-b.p.qty)}
 const leftTxt=r=>r.p.qty<=0?L('نفد'):isFinite(r.left)?L('يكفي ~{d} يوم',{d:Math.max(0,Math.round(r.left))}):L('منخفض');
 function orderMsg(sp,items){return[L('مرحبًا {n}، أودّ طلب:',{n:sp?sp.name:''}).replace(' ،',''),...items.map(([p,q])=>`• ${p.name} × ${q}`),'',S.k.biz||'KOPTAN'].join('\n')}
 function orderGroup(sp,rows,sel){const w=sp&&(sp.wa||sp.phone);return`<div class="card og" data-g="${sp?sp.id:''}"><div class="pch">${SV(LU.truck)}${esc(sp?sp.name:L('بدون مورد'))}</div>${rows.map(r=>`<div class="orow"><label class="ock"><input type="checkbox" data-pid="${r.p.id}" ${sel?'checked':''}></label><span class="t"><b>${esc(r.p.name)}</b><small>${L('المتوفر {q}',{q:r.p.qty})} · ${r.v>0?L('~{n} أسبوعيًا',{n:num(r.v*7)}):L('لا مبيعات حديثة')} · <span class="${r.p.qty<=0?'r':'o'}">${leftTxt(r)}</span></small></span><input class="inl sm" type="number" inputmode="numeric" min="1" dir="ltr" value="${r.sug}" data-q="${r.p.id}" aria-label="${esc(L('الكمية'))}"></div>`).join('')}
@@ -95,7 +99,7 @@ return`<div class="note">${SV(LU.info)}${L('يُحسب الاقتراح من م�
 b(el){el.addEventListener('click',e=>{const b=e.target.closest('[data-send]');if(b)orderSend(b.closest('.og'),b.dataset.send)})}};
 ACT.supOrder=id=>{const sp=spOf(id);if(!sp)return;const sug=new Map(reorderList().map(r=>[r.p.id,r]));const rows=spProds(id).filter(p=>!p.arch).map(p=>sug.get(p.id)||{p,v:velocity(p),left:Infinity,sug:1,none:1}).sort((a,b)=>(a.none||0)-(b.none||0));
 if(!rows.length)return warn(L('لا منتجات لهذا المورد'));const b=sheet(`<h2 class="sh-h">${L('طلبية من {n}',{n:sp.name})}</h2>`+orderGroup(sp,rows,false).replace(/data-pid="([^"]+)"/g,(m,pid)=>sug.has(pid)?m+' checked':m),'tall');b.addEventListener('click',e=>{const x=e.target.closest('[data-send]');if(x)orderSend(x.closest('.og'),x.dataset.send)})};
-const _nfAll0=nfAll;nfAll=function(){const R=_nfAll0();if(S.k.nfStock!==false)reorderList().forEach(r=>{if(r.p.qty>r.p.min&&isFinite(r.left))R.push({id:'r:'+r.p.id+':'+Math.ceil(r.left),k:'stock',lv:'o',t:L('قارب على النفاد: {n}',{n:r.p.name}),s:L('{l} — اقتراح طلب {q}',{l:leftTxt(r),q:r.sug}),a:['s','reo']})});return R};
+const _nfAll0=nfAll;nfAll=function(){return memo('nf',nfAll1).slice()};function nfAll1(){const R=_nfAll0();if(S.k.nfStock!==false)reorderList().forEach(r=>{if(r.p.qty>r.p.min&&isFinite(r.left))R.push({id:'r:'+r.p.id+':'+Math.ceil(r.left),k:'stock',lv:'o',t:L('قارب على النفاد: {n}',{n:r.p.name}),s:L('{l} — اقتراح طلب {q}',{l:leftTxt(r),q:r.sug}),a:['s','reo']})});return R}
 
 /* =================== barcode scanning (camera via BarcodeDetector, manual entry fallback) =================== */
 async function scanCode(cb){const b=sheet(`<h2 class="sh-h">${SV(LU.scan)} ${L('مسح الباركود')}</h2><div class="scanv"><video playsinline muted autoplay></video><i class="scanl"></i></div><p class="sub" data-msg>${L('وجّه الكاميرا نحو الباركود')}</p><div class="fl"><label>${L('أو اكتب الرقم يدويًا')}</label><div class="sb"><input data-man dir="ltr" inputmode="numeric" autocomplete="off"><button class="btn p" data-ok>${L('تم')}</button></div></div>`);
