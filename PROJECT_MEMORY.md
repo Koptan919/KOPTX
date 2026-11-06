@@ -1,7 +1,7 @@
 # KOPT X (formerly KOPTAN) · مدير أعمالي — Project memory
 
 > Detailed, persistent context for future development sessions. The concise rules are in [CLAUDE.md](CLAUDE.md).
-> Last updated: 2026-11-06 · App version **9.5.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
+> Last updated: 2026-11-06 · App version **9.6.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
 
 ---
 
@@ -235,6 +235,11 @@ Rules:
 - *Build APK* run #10 (42302437571) succeeded: 8 Capacitor plugins incl. `@capacitor/app@6.0.3`, `assembleRelease` signed with the permanent key, certificate SHA-256 matched the committed fingerprint. Release `v9.5.0-build-10` → https://github.com/Koptan919/Koptan/releases/download/v9.5.0-build-10/KOPTAN.apk (7.7 MB). Contains KOPT X name/icon, back-button fix, everything up to 9.5.0.
 - The owner asked for the file to be called KOPTX: workflows now publish `KOPTX.apk` / `KOPTX.ipa` (iOS permission texts say KOPT X). Releases can't be edited from the session, so *Build APK* run #11 (42303138240) rebuilt it: release `v9.5.0-build-11` → https://github.com/Koptan919/Koptan/releases/download/v9.5.0-build-11/KOPTX.apk (7.7 MB), same permanent certificate (SHA-256 matched). Build 10 (`KOPTAN.apk`) is the same app; build 11 installs over it.
 - The owner's installed APK is debug-signed, so this one install needs: backup → uninstall → install build 10 → restore. Every later release-signed APK installs as an update.
+
+### 2026-11-06: v9.6.0 biometric option named after the device (face / fingerprint)
+- The owner wanted to choose face or fingerprint. Not possible: Android's BiometricPrompt and iOS pick the method themselves (an app can't request face or fingerprint specifically). Agreed instead: name the option after what the phone uses.
+- `extra.js`: `BIOT` / persisted `S.k.bioT` = `'face'|'finger'|'any'`. Native: `NativeBiometric.isAvailable().biometryType` 1,3 → finger; 2,4 → face; anything else (6 = multiple, 5 = iris) → any. Web: `webBioKind()` heuristic (iPhone with a screen of 812 px or more → face, other iPhone or Mac → finger, iPad and the rest → any). `bioName()` / `bioIcon()` (new Lucide `LU.face` = scan-face in core.js) drive the settings row title and subtitle, the lock-screen button (updated once `bioAvail` resolves), prompt subtitles and toasts. Unlocking itself is unchanged.
+- Verified: new F25 (native mock, types 2/4/3/6: settings row, enable toast, lock button, unlock by the prompt), `tests/run.sh shots` green (e2e 42/42, features 25/25, self-update, SW upgrade, no overflow). F21 no longer hard-codes versions (it failed only because 9.3.1 dropped off the 3-item list). Screenshots of the face case reviewed. Web-layer only: works with APK build 10/11.
 
 ---
 

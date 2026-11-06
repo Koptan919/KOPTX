@@ -3,6 +3,7 @@
 const {chromium}=require('playwright');const SH=process.argv[2]||'.';const URL='http://localhost:8123/new/index.html';
 const R=[];let p,ctx,errs=[];const ok=(c,m)=>{if(!c)throw new Error(m||'assert')};
 const step=async(n,f)=>{try{await f();R.push('PASS — '+n)}catch(e){R.push('FAIL — '+n+' — '+String(e.message||e).split('\n')[0]);try{await p.screenshot({path:SH+'/FAIL-feat-'+n.split(' ')[0]+'.png'})}catch(x){}}};
+const newerT=(a,b)=>{const x=a.split('.').map(Number),y=b.split('.').map(Number);for(let i=0;i<3;i++)if(x[i]!==y[i])return x[i]>y[i];return false};
 const ev=(f,a)=>p.evaluate(f,a),W=ms=>p.waitForTimeout(ms),ready=async()=>{await p.waitForSelector('body.ready',{timeout:10000});await W(400)},clr=()=>ev(()=>document.querySelectorAll('.pg,.sheet-bg').forEach(x=>x.remove())),top=()=>p.locator('.pg').last();
 (async()=>{const b=await chromium.launch({args:['--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream']});
 ctx=await b.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true,acceptDownloads:true,permissions:['camera']});p=await ctx.newPage();
@@ -63,7 +64,7 @@ await step('F20 vibration settings: strength persists, test button diagnoses an 
 const c3=await b.newContext();const q=await c3.newPage();await q.addInitScript(()=>{window.Capacitor={isNativePlatform:()=>true,Plugins:{}}});await q.goto(URL);await q.waitForSelector('body.ready');await q.evaluate(()=>openSub('set'));await q.waitForTimeout(400);
 ok((await q.locator('[data-act=vibTest]').innerText()).includes('9.2.0'),'old APK explained');await q.locator('[data-act=vibTest]').click();await q.waitForTimeout(200);ok((await q.locator('.toast').innerText()).includes('9.2.0'),'toast explains');await c3.close();await clr()});
 await step('F21 what\'s new: one notification per installed version, toast after an update, page, switch',async()=>{await clr();await ev(async()=>{S.k.lastVer='9.2.0';S.k.updN=[];S.k.nr=[];S.k.nd=[];await saveK()});await p.reload();await ready();await W(1200);
-const st=await ev(()=>({n:S.k.updN,l:S.k.lastVer,v:APP_VER,ids:nfAll().map(n=>n.id).filter(i=>i.startsWith('u:'))}));ok(st.l===st.v,'lastVer saved');ok(st.n[0]===st.v&&st.n.includes('9.3.1')&&!st.n.includes('9.2.0')&&st.n.length<=3,JSON.stringify(st.n));ok(st.ids.includes('u:'+st.v),'notification');
+const st=await ev(()=>({cv:CHANGES.filter(c=>newer(c.v,'9.2.0')&&!newer(c.v,APP_VER)).length,n:S.k.updN,l:S.k.lastVer,v:APP_VER,ids:nfAll().map(n=>n.id).filter(i=>i.startsWith('u:'))}));ok(st.l===st.v,'lastVer saved');ok(st.n[0]===st.v&&!st.n.includes('9.2.0')&&st.n.length===Math.min(3,st.cv)&&st.n.every((v,i)=>!i||newerT(st.n[i-1],v)),JSON.stringify(st.n));ok(st.ids.includes('u:'+st.v),'notification');
 const tt=await p.locator('.toast').innerText();ok(tt.includes(st.v)&&(await p.locator('.toast .tbtn').count())===1,'toast: '+tt);
 await ev(()=>openSub('nf'));await W(400);const it=top().locator('.nfi',{hasText:st.v}).first();ok(await it.count()===1,'listed in the center');await it.click();await W(700);ok(await p.locator('.pg[data-sub=upd]').count()===1,'opens what\'s new');ok(await p.locator('.pg[data-sub=upd] .chl li').count()>=5,'notes listed');await clr();
 await p.reload();await ready();await W(1200);ok(await p.locator('.toast').count()===0,'no toast on a normal launch');ok(await ev(()=>S.k.updN.length)===st.n.length,'unchanged');
@@ -82,5 +83,12 @@ await q.evaluate(()=>__bb());await q.waitForTimeout(400);ok(await q.locator('.pg
 await q.evaluate(()=>__bb());await q.waitForTimeout(300);ok(await q.evaluate(()=>tab)==='home','back to home');
 await q.evaluate(()=>__bb());await q.waitForTimeout(200);ok(!await q.evaluate(()=>window.__exit),'first press on Home does not exit');await q.evaluate(()=>__bb());await q.waitForTimeout(200);ok(await q.evaluate(()=>window.__exit)===1,'second press exits');
 ok(qe.length===0,qe.join(' | '));await c4.close()});
+await step('F25 biometric option is named after the device: face / fingerprint / both',async()=>{for(const [bt,want] of [[2,'الدخول بالوجه'],[4,'الدخول بالوجه'],[3,'الدخول بالبصمة'],[6,'الدخول بالبصمة أو الوجه']]){const c5=await b.newContext();const q=await c5.newPage();const qe=[];q.on('pageerror',e=>qe.push(e.message));
+await q.addInitScript(t=>{window.Capacitor={isNativePlatform:()=>true,Plugins:{NativeBiometric:{isAvailable:async()=>({isAvailable:true,biometryType:t}),verifyIdentity:async()=>{window.__bio=(window.__bio||0)+1}}}}},bt);
+await q.goto(URL);await q.waitForSelector('body.ready');await q.evaluate(async()=>{S.k.pin=await sha('pbm2468');await saveK();openSub('set')});await q.waitForTimeout(700);
+const row=(await q.locator('.srow:has([data-act=bioSet])').innerText()).split('\n')[0].trim();ok(row===want,bt+': row "'+row+'"');
+await q.locator('[data-act=bioSet]').click();await q.waitForTimeout(400);ok(await q.evaluate(()=>S.k.bio===true&&window.__bio===1),bt+': enabled');ok((await q.locator('.toast').innerText()).includes(want),bt+': toast');
+await q.reload();await q.waitForSelector('.lk [data-bio]');await q.waitForTimeout(120);ok((await q.locator('.lk [data-bio]').innerText()).trim()===want,bt+': lock button');await q.waitForTimeout(900);ok(await q.evaluate(()=>!document.querySelector('.lk')),bt+': unlocked by the prompt');
+ok(qe.length===0,qe.join(' | '));await c5.close()}});
 await step('F24 no JS errors in the later steps',async()=>{ok(errs.length===0,errs.join(' | '))});
 console.log(R.join('\n'));console.log('PASSED',R.filter(x=>x.startsWith('PASS')).length,'/',R.length);await b.close()})();

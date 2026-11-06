@@ -22,7 +22,7 @@ Ships as: a PWA on GitHub Pages (https://koptan919.github.io/Koptan/), an Androi
 1. Check what is live first: `git show origin/gh-pages:version.json` must not be newer than your branch. Add the release notes to `CHANGES` in `extra.js` (shown to users as a “What's new” notification).
 1. Bump `APP_VER` in `core.js`, `?v=NNN` in `index.html` (all 5 scripts + css) + `Q` in `sw.js`, cache name `V` in `sw.js`, `version` in `manifest.json`.
 2. `node --check core.js views.js more.js extra.js i18n.js sw.js`, then confirm every Arabic string has an EN entry (see PROJECT_MEMORY.md › Testing).
-3. `tests/run.sh` must pass (42 e2e + 24 feature checks + self-update + SW upgrade). For performance work run `node tests/perf.js` before and after. Use `tests/run.sh shots` for UI changes and look at the screenshots.
+3. `tests/run.sh` must pass (42 e2e + 25 feature checks + self-update + SW upgrade). For performance work run `node tests/perf.js` before and after. Use `tests/run.sh shots` for UI changes and look at the screenshots.
 4. Commit on the working branch and push.
 5. Deploy: check out `gh-pages` in a worktree, run `tools/publish-web.sh <worktree>`, commit, push. This also publishes `version.json` + `koptan-<ver>.zip`, which installed APKs download as their update.
 6. Run the `Verify live site` workflow and read its log. Only claim success if every line says PASS.
