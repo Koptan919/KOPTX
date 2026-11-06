@@ -191,6 +191,7 @@ Rules:
 - **CSS:** removed live `backdrop-filter` from cards (they sit on the static ambient gradient; pixel diff vs before ≈ 0%, kept on header/nav/sheets/toasts). Added `content-visibility:auto` on list rows/cards, `touch-action:manipulation`, GPU layers for `.amb`/pages/sheets, springy press transitions. All motion kept.
 - **Haptics:** `hap(kind)` in core.js: select / tap / press / heavy / success / warning / error. Uses the native `@capacitor/haptics@6.0.3` (APK) or `navigator.vibrate` (browser, only after user activation). Duplicates within 90 ms are merged and stronger feedback wins. Global light tap on every press; success/warning come from toasts; heavy on destructive confirm; error on wrong PIN; success on unlock. `buzz(n)` maps onto it. Setting “الاهتزاز عند اللمس”.
 - Verified: `tests/run.sh shots` all green (e2e 42/42, features 18/18 incl. new F18 haptics with a mocked plugin, self-update, web auto-update, SW upgrade, no overflow).
+- Deployed 9.2.0; *Verify live site* run #6 success. **Build APK run #9 succeeded** → release `v9.2.0-build-9` (debug-signed; includes Haptics, NativeBiometric, LocalNotifications, Camera, Filesystem, Share, CapacitorUpdater).
 
 ---
 
