@@ -47,7 +47,7 @@ linear-gradient(180deg,#0d0e12,#0a0b0e)}
 .lite .card,.lite .kpi,.lite .row,.lite .sec,.lite .ac,.lite .pc,.lite .pgp,.lite .hero,.lite .chartc,.lite .nfi,.lite .dc,.lite .grp,.lite .sph,.lite .es,.lite .ssum>div,.lite .qc,.lite .alert{-webkit-backdrop-filter:none;backdrop-filter:none;background:linear-gradient(150deg,rgba(255,255,255,.085),rgba(255,255,255,.035));box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
 /* header */
 .top{position:fixed;top:0;inset-inline:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:calc(8px + env(safe-area-inset-top,0px)) 14px 8px;border-width:0 0 1px;border-radius:0;box-shadow:0 6px 20px rgba(0,0,0,.25)}
-.tt{min-width:0}.tt h1{font-size:21px;background:var(--metal);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.25}.tt .sub{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tt{min-width:0}.tt h1{font-size:21px;background:var(--metal);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.25}.tt h1 .tx{font-style:normal;background:var(--burg);-webkit-background-clip:text;background-clip:text;color:transparent}.tt .sub{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hb{display:flex;gap:6px}
 .ib{min-width:44px;min-height:44px;border-radius:14px;display:grid;place-items:center;color:var(--tx);position:relative;transition:transform .12s,background .2s}
 .top .ib,.ib.gl{background:rgba(255,255,255,.06);border:1px solid var(--gbd);box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}

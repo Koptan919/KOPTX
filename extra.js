@@ -14,7 +14,7 @@ return`<section class="card goal ${net>=g?'done':''}"><div class="goal-h"><span>
 function daySum(a){a=a||sod();const b=a+864e5,g=AGG(a,b),ss=S.s.filter(s=>s.date>=a&&s.date<b),inP=t=>S.d.filter(d=>d.type===t).reduce((x,d)=>x+(d.pays||[]).filter(y=>y.date>=a&&y.date<b).reduce((q,y)=>q+toU(d,y.amt),0),0),by={};
 ss.forEach(s=>{by[s.name]=(by[s.name]||0)+prof(s)});const top=Object.entries(by).sort((x,y)=>y[1]-x[1])[0],due=S.d.filter(d=>!d.arch&&dRem(d)>0&&d.due&&d.due>=b&&d.due<b+864e5),low=S.p.filter(p=>!p.arch&&p.qty<=p.min).length;
 return{a,g,n:ss.length,units:ss.reduce((x,s)=>x+s.qty,0),col:inP('in'),paid:inP('out'),top,due,low}}
-function sumText(x){return[L('ملخص يوم {d}',{d:day(x.a)})+' — '+(S.k.biz||'KOPTAN'),L('المبيعات')+': '+plain(x.g.rev)+' ('+plural(x.n,'{n} عملية','{n} عمليات')+')',L('أرباح المبيعات')+': '+plain(x.g.gp),L('المصاريف')+': '+plain(x.g.ex),L('صافي الربح')+': '+plain(x.g.net),L('ديون محصّلة')+': '+plain(x.col)].join('\n')}
+function sumText(x){return[L('ملخص يوم {d}',{d:day(x.a)})+' — '+(S.k.biz||'KOPT X'),L('المبيعات')+': '+plain(x.g.rev)+' ('+plural(x.n,'{n} عملية','{n} عمليات')+')',L('أرباح المبيعات')+': '+plain(x.g.gp),L('المصاريف')+': '+plain(x.g.ex),L('صافي الربح')+': '+plain(x.g.net),L('ديون محصّلة')+': '+plain(x.col)].join('\n')}
 ACT.daySum=()=>{const x=daySum();const b=sheet(`<h2 class="sh-h">${SV(LU.cal)} ${L('ملخص اليوم')}</h2><small>${day(x.a)}</small>
 <div class="kgrid k4 mt"><div class="kpi s"><small>${L('المبيعات')}</small><b>${fmt(x.g.rev)}</b><em>${plural(x.n,'{n} عملية','{n} عمليات')}</em></div><div class="kpi s"><small>${L('صافي الربح')}</small><b class="${x.g.net<0?'r':'g'}">${fmt(x.g.net)}</b></div><div class="kpi s"><small>${L('أرباح المبيعات')}</small><b>${fmt(x.g.gp)}</b></div><div class="kpi s"><small>${L('المصاريف')}</small><b class="o">${fmt(x.g.ex)}</b></div></div>
 ${K(L('القطع المباعة'),x.units)}${K(L('ديون محصّلة'),fmt(x.col),'g')}${K(L('ديون مسدّدة'),fmt(x.paid))}${x.top?K(L('الأكثر ربحًا اليوم'),esc(x.top[0])+' · '+fmt(x.top[1]),'g'):''}${K(L('ديون تستحق غدًا'),x.due.length,x.due.length?'o':'')}${K(L('منتجات منخفضة المخزون'),x.low,x.low?'o':'')}
@@ -24,7 +24,7 @@ function shareText(t){if(navigator.share)navigator.share({text:t}).catch(()=>{})
 /* Android: repeating local notification at the chosen time; tapping it opens the summary */
 async function scheduleSum(){if(!hasPl('LocalNotifications'))return;const LN='LocalNotifications';try{await capCall(LN,'cancel',{notifications:[{id:9001}]})}catch(e){}if(!S.k.sumOn)return;
 try{let p=await capCall(LN,'checkPermissions');if(p.display!=='granted')p=await capCall(LN,'requestPermissions');if(p.display!=='granted'){warn(L('اسمح للتطبيق بالإشعارات من إعدادات الهاتف'));return}
-await capCall(LN,'schedule',{notifications:[{id:9001,title:L('ملخص اليوم — KOPTAN'),body:L('اضغط لعرض مبيعات وأرباح اليوم'),schedule:{on:{hour:+S.k.sumH,minute:+S.k.sumM||0}},extra:{go:'daySum'}}]})}catch(e){console.warn('notif',e)}}
+await capCall(LN,'schedule',{notifications:[{id:9001,title:L('ملخص اليوم — KOPT X'),body:L('اضغط لعرض مبيعات وأرباح اليوم'),schedule:{on:{hour:+S.k.sumH,minute:+S.k.sumM||0}},extra:{go:'daySum'}}]})}catch(e){console.warn('notif',e)}}
 
 /* =================== WhatsApp invoice (image + text) =================== */
 /* sequential invoice number, assigned once per sale (optional field s.inv) */
@@ -32,7 +32,7 @@ async function invNo(s){if(!s.inv){S.k.invN=(S.k.invN||0)+1;s.inv=S.k.invN;await
 function invInfo(s){const d=s.did&&S.d.find(x=>x.id===s.did),tot=sRev(s),rem=d?Math.max(0,toU(d,dRem(d))):0,paid=Math.max(0,tot-rem),st=rem<=0.005?['مدفوعة','#1f9d63','#e7f6ee']:paid>0.005?['مدفوعة جزئيًا','#c77712','#fdf1e1']:['غير مدفوعة','#c8334f','#fbe8ec'];
 return{d,tot,rem,paid,st,ph:s.cph||(d&&d.phone)||'',pay:(PAYM.find(x=>x[0]===s.pay)||['',''])[1]}}
 const timeS=t=>DF('hm',{hour:'2-digit',minute:'2-digit'}).format(t);
-function invText(s,ref){const i=invInfo(s),ln='──────────';return[`*${S.k.biz||'KOPTAN'}* — ${L('فاتورة')} ${ref}`,`${L('التاريخ')}: ${day(s.date)}`,s.cust?`${L('الزبون')}: ${s.cust}`:'',ln,`${s.name}`,`${s.qty} × ${plain(s.price)} = ${plain(s.price*s.qty)}`,s.disc?`${L('الخصم')}: −${plain(s.disc)}`:'',`*${L('الإجمالي')}: ${plain(i.tot)}*`,`${L('المدفوع')}: ${plain(i.paid)}`+(i.rem>0?` · ${L('المتبقي')}: ${plain(i.rem)}`:''),`${L('الحالة')}: ${L(i.st[0])}`,ln,S.k.invNote||L('شكرًا لتعاملكم'),S.k.bizPh?S.k.bizPh:''].filter(Boolean).join('\n')}
+function invText(s,ref){const i=invInfo(s),ln='──────────';return[`*${S.k.biz||'KOPT X'}* — ${L('فاتورة')} ${ref}`,`${L('التاريخ')}: ${day(s.date)}`,s.cust?`${L('الزبون')}: ${s.cust}`:'',ln,`${s.name}`,`${s.qty} × ${plain(s.price)} = ${plain(s.price*s.qty)}`,s.disc?`${L('الخصم')}: −${plain(s.disc)}`:'',`*${L('الإجمالي')}: ${plain(i.tot)}*`,`${L('المدفوع')}: ${plain(i.paid)}`+(i.rem>0?` · ${L('المتبقي')}: ${plain(i.rem)}`:''),`${L('الحالة')}: ${L(i.st[0])}`,ln,S.k.invNote||L('شكرًا لتعاملكم'),S.k.bizPh?S.k.bizPh:''].filter(Boolean).join('\n')}
 /* professional white-paper invoice, drawn on canvas (1080 px wide), RTL or LTR with the app language */
 async function invImage(s,ref){try{await Promise.all(['400','500','700','800'].map(w=>document.fonts.load(w+' 40px Tajawal','فاتورة Invoice 123')))}catch(e){}
 const rtl=LANG!=='en',W=1080,P=70,i=invInfo(s),note=(s.note||'').trim(),INK='#f4f4f6',MU='#a6aab3',LN='rgba(255,255,255,.11)',AC='#e8829f',GR='#42d293',OR='#f3ab55',DK={'#1f9d63':'66,210,147','#c77712':'243,171,85','#c8334f':'255,97,120'};
@@ -51,7 +51,7 @@ g=x.createLinearGradient(0,0,W,0);g.addColorStop(0,'#6e1730');g.addColorStop(.5,
 x.beginPath();x.roundRect?x.roundRect(26,34,W-52,H-74,32):x.rect(26,34,W-52,H-74);x.fillStyle='rgba(255,255,255,.025)';x.fill();x.lineWidth=2;x.strokeStyle='rgba(255,255,255,.08)';x.stroke();
 /* header: logo + store at the start, title + number + date at the end */
 try{const im=await new Promise((a,b)=>{const m=new Image();m.onload=()=>a(m);m.onerror=b;m.src='icon-192.png'});const sz=112,ix=rtl?W-P-sz:P;x.save();x.beginPath();x.roundRect?x.roundRect(ix,62,sz,sz,28):x.rect(ix,62,sz,sz);x.clip();x.drawImage(im,ix,62,sz,sz);x.restore();x.beginPath();x.roundRect?x.roundRect(ix,62,sz,sz,28):x.rect(ix,62,sz,sz);x.lineWidth=2;x.strokeStyle='rgba(255,255,255,.14)';x.stroke()}catch(e){}
-const bx=X(P+138);T(fit(S.k.biz||'KOPTAN',400,44,800),bx,112,44,800,metal(74,116));let hy=154;if(S.k.bizPh){T(S.k.bizPh,bx,hy,25,500,MU,AS,true);hy+=34}if(S.k.bizAddr){T(fit(S.k.bizAddr,400,23,500),bx,hy,23,500,MU);hy+=34}
+const bx=X(P+138);T(fit(S.k.biz||'KOPT X',400,44,800),bx,112,44,800,metal(74,116));let hy=154;if(S.k.bizPh){T(S.k.bizPh,bx,hy,25,500,MU,AS,true);hy+=34}if(S.k.bizAddr){T(fit(S.k.bizAddr,400,23,500),bx,hy,23,500,MU);hy+=34}
 T(L('فاتورة'),X(W-P),118,60,800,metal(66,122),AE);T(ref,X(W-P),162,26,700,INK,AE,true);T(day(s.date)+' · '+timeS(s.date),X(W-P),198,24,500,MU,AE);
 x.fillStyle=LN;x.fillRect(P,262,W-2*P,2);
 /* billed to + payment status */
@@ -72,7 +72,7 @@ y+=50;T(L('المدفوع'),L0,y,26,500,MU,AS);T(plain(i.paid),R0,y,27,700,GR,AE
 if(i.rem>0){y+=58;T(L('المتبقي'),L0,y,26,500,MU,AS);T(plain(i.rem),R0,y,27,800,OR,AE,true)}
 /* footer */
 const fy=H-150;x.fillStyle=LN;x.fillRect(P,fy-46,W-2*P,2);T(fit(S.k.invNote||L('شكرًا لتعاملكم'),W-2*P,32,800),W/2,fy,32,800,'#cfd3da','center');
-T([S.k.bizTax?L('الرقم الضريبي')+': '+S.k.bizTax:'','KOPTAN · '+L('مدير أعمالي')].filter(Boolean).join('   ·   '),W/2,fy+44,22,500,'#767a84','center');
+T([S.k.bizTax?L('الرقم الضريبي')+': '+S.k.bizTax:'','KOPT X · '+L('مدير أعمالي')].filter(Boolean).join('   ·   '),W/2,fy+44,22,500,'#767a84','center');
 return new Promise(r=>c.toBlob(r,'image/png'))}
 async function invoice(sid){const s=S.s.find(x=>x.id===sid);if(!s)return;const done=toastP(L('جارٍ تجهيز الفاتورة…'));let blob,ref;try{ref=await invNo(s);blob=await invImage(s,ref)}catch(e){console.error(e)}done();if(!blob){warn(L('تعذر إنشاء الفاتورة'));return}
 const url=URL.createObjectURL(blob),ph=invInfo(s).ph,name=ref+'.png',txt=invText(s,ref);
@@ -109,7 +109,7 @@ function velocity(p){const now=Date.now(),D=864e5,from=now-30*D,days=Math.max(7,
 function reorderList(){return memo('reo',reorderList0)}
 function reorderList0(){const lead=+S.k.lead||7;return S.p.filter(p=>!p.arch).map(p=>{const v=velocity(p),left=v>0?p.qty/v:Infinity,low=p.qty<=p.min;if(!low&&!(left<lead))return null;const want=Math.max(Math.ceil(v*30),(+p.min||0)*2,1);return{p,v,left,sug:Math.max(1,want-p.qty)}}).filter(Boolean).sort((a,b)=>a.left-b.left||a.p.qty-b.p.qty)}
 const leftTxt=r=>r.p.qty<=0?L('نفد'):isFinite(r.left)?L('يكفي ~{d} يوم',{d:Math.max(0,Math.round(r.left))}):L('منخفض');
-function orderMsg(sp,items){return[L('مرحبًا {n}، أودّ طلب:',{n:sp?sp.name:''}).replace(' ،',''),...items.map(([p,q])=>`• ${p.name} × ${q}`),'',S.k.biz||'KOPTAN'].join('\n')}
+function orderMsg(sp,items){return[L('مرحبًا {n}، أودّ طلب:',{n:sp?sp.name:''}).replace(' ،',''),...items.map(([p,q])=>`• ${p.name} × ${q}`),'',S.k.biz||'KOPT X'].join('\n')}
 function orderGroup(sp,rows,sel){const w=sp&&(sp.wa||sp.phone);return`<div class="card og" data-g="${sp?sp.id:''}"><div class="pch">${SV(LU.truck)}${esc(sp?sp.name:L('بدون مورد'))}</div>${rows.map(r=>`<div class="orow"><label class="ock"><input type="checkbox" data-pid="${r.p.id}" ${sel?'checked':''}></label><span class="t"><b>${esc(r.p.name)}</b><small>${L('المتوفر {q}',{q:r.p.qty})} · ${r.v>0?L('~{n} أسبوعيًا',{n:num(r.v*7)}):L('لا مبيعات حديثة')} · <span class="${r.p.qty<=0?'r':'o'}">${leftTxt(r)}</span></small></span><input class="inl sm" type="number" inputmode="numeric" min="1" dir="ltr" value="${r.sug}" data-q="${r.p.id}" aria-label="${esc(L('الكمية'))}"></div>`).join('')}
 <div class="bar">${w&&wn(w)?`<button class="btn p" data-send="wa">${WA_SVG}${L('إرسال الطلبية واتساب')}</button>`:''}<button class="btn ghost" data-send="copy">${SV(LU.copy)}${L('نسخ الطلبية')}</button></div></div>`}
 function orderPick(g){const items=[];g.querySelectorAll('[data-pid]').forEach(c=>{if(!c.checked)return;const p=S.p.find(x=>x.id===c.dataset.pid),q=+g.querySelector(`[data-q="${c.dataset.pid}"]`).value;if(p&&q>0)items.push([p,Math.round(q)])});return items}
@@ -141,11 +141,11 @@ let BIO=null;
 const rnd=n=>crypto.getRandomValues(new Uint8Array(n)),b64=a=>btoa(String.fromCharCode(...new Uint8Array(a))),ub64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function bioAvail(){if(BIO!==null)return BIO;try{if(hasPl('NativeBiometric')){const r=await capCall('NativeBiometric','isAvailable');BIO=r&&r.isAvailable?'nat':''}else if(window.PublicKeyCredential&&PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable())BIO='web';else BIO=''}catch(e){BIO=''}return BIO}
 function bioRow(){if(BIO===null){bioAvail().then(()=>refreshPages());return''}if(!BIO)return'';return`<div class="srow">${SIc(LU.finger,'r')}<span class="t"><b>${L('الدخول بالبصمة')}</b><small>${S.k.pin?L('بصمة الإصبع أو الوجه بدل كتابة الرمز — الرمز يبقى احتياطيًا'):L('فعّل رمز PIN أولًا')}</small></span><button class="sw ${S.k.bio?'on':''}" role="switch" aria-checked="${!!S.k.bio}" aria-label="${esc(L('الدخول بالبصمة'))}" data-act="bioSet"></button></div>`}
-async function bioVerify(){const a=await bioAvail();try{if(a==='nat'){await capCall('NativeBiometric','verifyIdentity',{reason:L('افتح KOPTAN'),title:'KOPTAN',subtitle:L('استخدم البصمة لفتح التطبيق'),negativeButtonText:L('استخدم الرمز'),maxAttempts:3});return true}
+async function bioVerify(){const a=await bioAvail();try{if(a==='nat'){await capCall('NativeBiometric','verifyIdentity',{reason:L('افتح KOPT X'),title:'KOPT X',subtitle:L('استخدم البصمة لفتح التطبيق'),negativeButtonText:L('استخدم الرمز'),maxAttempts:3});return true}
 if(a==='web'&&S.k.bioId){const r=await navigator.credentials.get({publicKey:{challenge:rnd(32),allowCredentials:[{type:'public-key',id:ub64(S.k.bioId)}],userVerification:'required',timeout:60000}});const ad=new Uint8Array(r.response.authenticatorData);return!!(ad[32]&4)}}catch(e){if(!cancelled(e)&&!(e&&e.name==='NotAllowedError'))console.warn('bio',e)}return false}
 ACT.bioSet=async()=>{if(S.k.bio){S.k.bio=false;S.k.bioId='';await saveK();ok(L('تم إيقاف الدخول بالبصمة'));refresh();return}if(!S.k.pin){warn(L('فعّل رمز PIN أولًا — البصمة تُستخدم معه'));return}const a=await bioAvail();
-try{if(a==='nat')await capCall('NativeBiometric','verifyIdentity',{reason:L('تفعيل الدخول بالبصمة'),title:'KOPTAN',subtitle:L('ضع إصبعك للتأكيد'),negativeButtonText:L('إلغاء')});
-else if(a==='web'){const c=await navigator.credentials.create({publicKey:{challenge:rnd(32),rp:{name:'KOPTAN'},user:{id:rnd(16),name:'koptan',displayName:'KOPTAN'},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},attestation:'none',timeout:60000}});S.k.bioId=b64(c.rawId)}else return warn(L('البصمة غير متاحة على هذا الجهاز'))}
+try{if(a==='nat')await capCall('NativeBiometric','verifyIdentity',{reason:L('تفعيل الدخول بالبصمة'),title:'KOPT X',subtitle:L('ضع إصبعك للتأكيد'),negativeButtonText:L('إلغاء')});
+else if(a==='web'){const c=await navigator.credentials.create({publicKey:{challenge:rnd(32),rp:{name:'KOPT X'},user:{id:rnd(16),name:'koptan',displayName:'KOPT X'},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},attestation:'none',timeout:60000}});S.k.bioId=b64(c.rawId)}else return warn(L('البصمة غير متاحة على هذا الجهاز'))}
 catch(e){if(!cancelled(e)&&!(e&&e.name==='NotAllowedError'))warn(L('تعذر تفعيل البصمة'));return}
 S.k.bio=true;await saveK();ok(L('تم تفعيل الدخول بالبصمة ✓'));refresh()};
 
@@ -173,6 +173,7 @@ document.addEventListener('click',async e=>{const b=e.target.closest&&e.target.c
 /* =================== what's new: one notification per installed update =================== */
 /* newest first; add an entry with every release (Arabic source, EN in i18n.js) */
 const CHANGES=[
+{v:'9.5.0',d:'2026-11-06',n:['هوية جديدة: الاسم KOPT X وأيقونة جديدة']},
 {v:'9.4.0',d:'2026-11-06',n:['إشعار «ما الجديد» يظهر بعد كل تحديث','زر الرجوع في الهاتف يعود إلى الشاشة السابقة بدل الخروج','اضغط رجوع مرتين في الرئيسية للخروج من التطبيق']},
 {v:'9.3.1',d:'2026-11-06',n:['الفاتورة بتصميم داكن احترافي','المبالغ والخصم تظهر بالاتجاه الصحيح في الفاتورة']},
 {v:'9.3.0',d:'2026-11-06',n:['فاتورة احترافية بترقيم تسلسلي وحالة الدفع','اهتزاز أوضح مع اختيار القوة وزر تجربة','تصميم جديد للإعدادات']},
@@ -191,7 +192,7 @@ if(hasPl('LocalNotifications')){try{Capacitor.Plugins.LocalNotifications.addList
 
 /* =================== settings: edit sheets, vibration test, invoice preview =================== */
 const EDIT={
-store:{t:'بيانات المتجر',f:[['biz','اسم المتجر','text','KOPTAN'],['bizPh','هاتف المتجر','tel','+961…'],['bizAddr','عنوان المتجر','text',''],['bizTax','الرقم الضريبي / السجل التجاري (اختياري)','text','']]},
+store:{t:'بيانات المتجر',f:[['biz','اسم المتجر','text','KOPT X'],['bizPh','هاتف المتجر','tel','+961…'],['bizAddr','عنوان المتجر','text',''],['bizTax','الرقم الضريبي / السجل التجاري (اختياري)','text','']]},
 invNote:{t:'نص أسفل الفاتورة',f:[['invNote','نص أسفل الفاتورة','text','شكرًا لتعاملكم']],h:'مثال: شكرًا لتعاملكم — الاستبدال خلال 7 أيام'},
 invN:{t:'رقم الفاتورة التالي',f:[['invN','رقم الفاتورة التالي','number','']],h:'تُرقّم الفواتير تلقائيًا بالتسلسل',get:{invN:()=>(S.k.invN||0)+1},chk:{invN:v=>v>=1&&Number.isInteger(v)},set:{invN:v=>S.k.invN=v-1}},
 rate:{t:'سعر الصرف',f:[['rate','ليرة لكل 1 دولار','number','90000']],h:'المبيعات السابقة لا تتغير',chk:{rate:v=>v>0}},
