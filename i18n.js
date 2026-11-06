@@ -305,5 +305,6 @@ window.EN={
 "تم تنزيل التحديث {v} — جارٍ إعادة التشغيل…":"Update {v} downloaded — restarting…",
 "جارٍ تحديث التطبيق…":"Updating the app…",
 "التطبيق محدّث إلى آخر إصدار ✓":"The app is up to date ✓",
-"الاهتزاز عند اللمس":"Haptic feedback","لمسة خفيفة عند الضغط، وتأكيد عند الحفظ، وتنبيه عند الأخطاء":"A light tap on press, a confirmation on save, an alert on errors"
+"الاهتزاز عند اللمس":"Haptic feedback","لمسة خفيفة عند الضغط، وتأكيد عند الحفظ، وتنبيه عند الأخطاء":"A light tap on press, a confirmation on save, an alert on errors",
+"المجموع الفرعي":"Subtotal","رقم الفاتورة":"Invoice no.","فاتورة إلى":"Billed to","زبون نقدي":"Walk-in customer","حالة الدفع":"Payment status"
 };

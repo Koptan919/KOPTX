@@ -30,28 +30,50 @@ await capCall(LN,'schedule',{notifications:[{id:9001,title:L('ملخص اليو�
 const invRef=s=>'INV-'+toDs(s.date).replace(/-/g,'')+'-'+String(s.id).slice(-4).toUpperCase();
 function invText(s){const d=s.did&&S.d.find(x=>x.id===s.did),rem=d?Math.max(0,toU(d,dRem(d))):0;return[(S.k.biz||'KOPTAN')+' — '+L('فاتورة')+' '+invRef(s),day(s.date)+(s.cust?' · '+s.cust:''),'',`${s.name} × ${s.qty} @ ${plain(s.price)}`,s.disc?L('الخصم')+': '+plain(s.disc):'',L('الإجمالي')+': '+plain(sRev(s)),s.paid!=null?L('المدفوع')+': '+plain(s.paid):'',rem>0?L('المتبقي')+': '+plain(rem):'','',L('شكرًا لتعاملكم')].filter((x,i,a)=>x!==''||a[i-1]!=='').join('\n')}
 async function invImage(s){try{await Promise.all(['400','500','700','800'].map(w=>document.fonts.load(w+' 40px Tajawal','فاتورة Invoice 123')))}catch(e){}
-const rtl=LANG!=='en',W=1080,P=72,d=s.did&&S.d.find(x=>x.id===s.did),rem=d?Math.max(0,toU(d,dRem(d))):0;
-const lines=[[L('المجموع'),plain(s.price*s.qty)]];if(s.disc)lines.push([L('الخصم'),'−'+plain(s.disc)]);
-const H=880+lines.length*64+(s.paid!=null?70:0)+(rem>0?70:0)+(s.cust?60:0);
+const rtl=LANG!=='en',W=1080,P=80,d=s.did&&S.d.find(x=>x.id===s.did),rem=d?Math.max(0,toU(d,dRem(d))):0;
+const lines=[[L('المجموع الفرعي'),plain(s.price*s.qty)]];if(s.disc)lines.push([L('الخصم'),'−'+plain(s.disc)]);
+const H=1036+lines.length*60+(s.paid!=null?60:0)+(rem>0?60:0);
 const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.direction=rtl?'rtl':'ltr';
-const ST=rtl?W-P:P,EN=rtl?P:W-P,AS=rtl?'right':'left',AE=rtl?'left':'right';
-const T=(t,X,Y,sz,wt,col,al)=>{x.font=`${wt||400} ${sz}px Tajawal, 'Noto Sans Arabic', sans-serif`;x.fillStyle=col||'#f4f4f6';x.textAlign=al||AS;x.fillText(String(t),X,Y)};
-x.fillStyle='#0f1014';x.fillRect(0,0,W,H);let g=x.createLinearGradient(0,0,W,300);g.addColorStop(0,'#c9416a');g.addColorStop(.55,'#9b2546');g.addColorStop(1,'#6e1730');x.fillStyle=g;x.fillRect(0,0,W,290);
-g=x.createRadialGradient(W*.85,0,10,W*.85,0,520);g.addColorStop(0,'rgba(255,255,255,.18)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,W,290);
-try{const im=await new Promise((a,b)=>{const i=new Image();i.onload=()=>a(i);i.onerror=b;i.src='icon-192.png'});const sz=120,ix=rtl?W-P-sz:P;x.save();x.beginPath();x.roundRect?x.roundRect(ix,70,sz,sz,30):x.rect(ix,70,sz,sz);x.clip();x.drawImage(im,ix,70,sz,sz);x.restore()}catch(e){}
-const bx=rtl?W-P-150:P+150;T(S.k.biz||'KOPTAN',bx,128,52,800,'#fff');if(S.k.bizPh){x.save();x.direction='ltr';T(S.k.bizPh,bx,180,30,500,'rgba(255,255,255,.85)',AS);x.restore()}
-T(L('فاتورة'),EN,122,46,800,'#fff',AE);x.save();x.direction='ltr';T(invRef(s),EN,168,26,500,'rgba(255,255,255,.85)',AE);x.restore();T(day(s.date),EN,208,26,500,'rgba(255,255,255,.85)',AE);
-let y=370;if(s.cust){T(L('الزبون')+': '+s.cust,ST,y,32,700);y+=60}
-x.fillStyle='rgba(255,255,255,.06)';x.fillRect(P-20,y-48,W-2*P+40,70);const cQ=rtl?W*.42:W*.58,cP=rtl?W*.27:W*.73;
-T(L('المنتج'),ST,y,26,700,'#a6aab3');T(L('الكمية'),cQ,y,26,700,'#a6aab3','center');T(L('السعر'),cP,y,26,700,'#a6aab3','center');T(L('المجموع'),EN,y,26,700,'#a6aab3',AE);
-y+=86;let nm=s.name;x.font="700 34px Tajawal, sans-serif";while(x.measureText(nm).width>W*.36&&nm.length>4)nm=nm.slice(0,-2);if(nm!==s.name)nm+='…';
-T(nm,ST,y,34,700);T(s.qty,cQ,y,34,700,'#f4f4f6','center');T(plain(s.price),cP,y,32,500,'#cfd3da','center');T(plain(s.price*s.qty),EN,y,34,700,'#f4f4f6',AE);
-y+=46;x.fillStyle='rgba(255,255,255,.12)';x.fillRect(P,y,W-2*P,2);y+=70;
-for(const[l,v]of lines){T(l,ST,y,30,500,'#a6aab3');T(v,EN,y,30,700,'#f4f4f6',AE);y+=64}
-x.fillStyle='rgba(201,65,106,.18)';x.fillRect(P-20,y-50,W-2*P+40,84);T(L('الإجمالي'),ST,y+4,38,800,'#fff');T(plain(sRev(s)),EN,y+4,42,800,'#e8829f',AE);y+=100;
-if(s.paid!=null){T(L('المدفوع'),ST,y,30,500,'#a6aab3');T(plain(s.paid),EN,y,30,700,'#42d293',AE);y+=70}
-if(rem>0){T(L('المتبقي'),ST,y,30,500,'#a6aab3');T(plain(rem),EN,y,30,700,'#f3ab55',AE);y+=70}
-T(L('شكرًا لتعاملكم'),W/2,H-110,34,700,'#cfd3da','center');T('KOPTAN · '+L('مدير أعمالي'),W/2,H-60,24,500,'#767a84','center');
+const ST=rtl?W-P:P,EN=rtl?P:W-P,AS=rtl?'right':'left',AE=rtl?'left':'right',F="Tajawal, 'Noto Sans Arabic', sans-serif";
+const T=(t,X,Y,sz,wt,col,al,ltr)=>{x.save();if(ltr)x.direction='ltr';x.font=`${wt||400} ${sz}px ${F}`;x.fillStyle=col||'#f4f4f6';x.textAlign=al||AS;x.fillText(String(t),X,Y);x.restore()};
+const RR=(X,Y,w,h,r)=>{x.beginPath();if(x.roundRect)x.roundRect(X,Y,w,h,r);else x.rect(X,Y,w,h)};
+const metal=(y0,y1)=>{const g=x.createLinearGradient(0,y0,0,y1);g.addColorStop(0,'#f4f5f7');g.addColorStop(.55,'#c4c8cf');g.addColorStop(1,'#8b9099');return g};
+const hair=(Y,a)=>{const g=x.createLinearGradient(P,0,W-P,0);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.5,`rgba(255,255,255,${a||.14})`);g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(P,Y,W-2*P,2)};
+/* background: deep titanium black, soft burgundy glow, thin accent bar */
+x.fillStyle='#0b0c0f';x.fillRect(0,0,W,H);
+let g=x.createRadialGradient(rtl?W*.1:W*.9,0,0,rtl?W*.1:W*.9,0,620);g.addColorStop(0,'rgba(155,37,70,.30)');g.addColorStop(1,'rgba(155,37,70,0)');x.fillStyle=g;x.fillRect(0,0,W,H);
+g=x.createRadialGradient(rtl?W*.9:W*.1,H,0,rtl?W*.9:W*.1,H,560);g.addColorStop(0,'rgba(207,211,218,.07)');g.addColorStop(1,'rgba(207,211,218,0)');x.fillStyle=g;x.fillRect(0,0,W,H);
+g=x.createLinearGradient(0,0,W,0);g.addColorStop(0,'#6e1730');g.addColorStop(.5,'#c9416a');g.addColorStop(1,'#6e1730');x.fillStyle=g;x.fillRect(0,0,W,8);
+RR(28,36,W-56,H-64,34);x.fillStyle='rgba(255,255,255,.025)';x.fill();x.lineWidth=2;x.strokeStyle='rgba(255,255,255,.08)';x.stroke();
+/* header */
+const LS=112,ly=74,lx=rtl?W-P-LS:P;try{const im=await new Promise((a,b)=>{const i=new Image();i.onload=()=>a(i);i.onerror=b;i.src='icon-192.png'});x.save();RR(lx,ly,LS,LS,28);x.clip();x.drawImage(im,lx,ly,LS,LS);x.restore();RR(lx,ly,LS,LS,28);x.lineWidth=2;x.strokeStyle='rgba(255,255,255,.14)';x.stroke()}catch(e){}
+const bx=rtl?W-P-LS-28:P+LS+28;let bn=S.k.biz||'KOPTAN';x.font=`800 48px ${F}`;while(x.measureText(bn).width>W*.4&&bn.length>4)bn=bn.slice(0,-2);if(bn!==(S.k.biz||'KOPTAN'))bn+='…';
+T(bn,bx,132,48,800,metal(92,136));T(S.k.bizPh||L('مدير أعمالي'),bx,174,26,500,'#a6aab3',AS,!!S.k.bizPh);
+T(L('فاتورة'),EN,126,56,800,metal(80,130),AE);T(L('رقم الفاتورة')+'  '+invRef(s),EN,170,24,500,'#a6aab3',AE);T(day(s.date),EN,206,24,500,'#a6aab3',AE);
+hair(254);
+/* billed to + payment status */
+T(L('فاتورة إلى'),ST,318,22,700,'#767a84');T(L('حالة الدفع'),EN,318,22,700,'#767a84',AE);
+T(s.cust||L('زبون نقدي'),ST,366,36,700,s.cust?'#f4f4f6':'#cfd3da');if(s.cph)T(s.cph,ST,408,26,500,'#a6aab3',AS,true);
+const [stL,stC]=rem>0?(s.paid>0?[L('مدفوع جزئيًا'),'243,171,85']:[L('غير مدفوع'),'255,97,120']):[L('مدفوع بالكامل'),'66,210,147'];
+x.font=`700 26px ${F}`;const pw=x.measureText(stL).width+56,pxx=rtl?EN:EN-pw;RR(pxx,332,pw,50,25);x.fillStyle=`rgba(${stC},.13)`;x.fill();x.lineWidth=2;x.strokeStyle=`rgba(${stC},.5)`;x.stroke();
+x.beginPath();x.arc(rtl?pxx+pw-24:pxx+24,357,6,0,7);x.fillStyle=`rgb(${stC})`;x.fill();T(stL,rtl?pxx+pw-40:pxx+40,366,26,700,`rgb(${stC})`,AS);
+const pm=s.pay&&typeof PAYM!=='undefined'&&PAYM.find(q=>q[0]===s.pay);if(pm)T(L('طريقة الدفع')+': '+L(pm[1]),EN,412,24,500,'#a6aab3',AE);
+/* items table */
+const cQ=rtl?W*.44:W*.56,cP=rtl?W*.28:W*.72;let y=512;
+RR(P-24,y-44,W-2*P+48,66,18);x.fillStyle='rgba(255,255,255,.055)';x.fill();
+T(L('المنتج'),ST,y,24,700,'#a6aab3');T(L('الكمية'),cQ,y,24,700,'#a6aab3','center');T(L('السعر'),cP,y,24,700,'#a6aab3','center');T(L('المجموع'),EN,y,24,700,'#a6aab3',AE);
+y+=86;let nm=s.name;x.font=`700 34px ${F}`;while(x.measureText(nm).width>W*.3&&nm.length>4)nm=nm.slice(0,-2);if(nm!==s.name)nm+='…';
+T(nm,ST,y,34,700);T(s.qty,cQ,y,34,700,'#f4f4f6','center',true);T(plain(s.price),cP,y,30,500,'#cfd3da','center',true);T(plain(s.price*s.qty),EN,y,34,700,'#f4f4f6',AE,true);
+y+=44;hair(y,.1);y+=76;
+/* summary, aligned to the end side */
+const SS=rtl?W*.52:W*.48;
+for(const[l,v]of lines){T(l,SS,y,28,500,'#a6aab3');T(v,EN,y,28,700,'#f4f4f6',AE,true);y+=60}
+y+=10;const bw=Math.abs(EN-SS)+48,bxx=rtl?EN-24:SS-24;RR(bxx,y-56,bw,94,22);g=x.createLinearGradient(bxx,0,bxx+bw,0);g.addColorStop(0,'rgba(110,23,48,.55)');g.addColorStop(1,'rgba(155,37,70,.28)');x.fillStyle=g;x.fill();x.lineWidth=2;x.strokeStyle='rgba(201,65,106,.55)';x.stroke();
+T(L('الإجمالي'),SS,y+4,32,800,'#f4f4f6');T(plain(sRev(s)),EN,y+6,44,800,'#fff',AE,true);y+=110;
+if(s.paid!=null){T(L('المدفوع'),SS,y,28,500,'#a6aab3');T(plain(s.paid),EN,y,28,700,'#42d293',AE,true);y+=60}
+if(rem>0){T(L('المتبقي'),SS,y,28,500,'#a6aab3');T(plain(rem),EN,y,28,800,'#f3ab55',AE,true);y+=60}
+/* footer */
+y+=40;hair(y);T(L('شكرًا لتعاملكم'),W/2,y+72,32,700,'#cfd3da','center');T('KOPTAN · '+L('مدير أعمالي'),W/2,y+116,22,500,'#767a84','center');
 return new Promise(r=>c.toBlob(r,'image/png'))}
 async function invoice(sid){const s=S.s.find(x=>x.id===sid);if(!s)return;const done=toastP(L('جارٍ تجهيز الفاتورة…'));let blob;try{blob=await invImage(s)}catch(e){console.error(e)}done();if(!blob){warn(L('تعذر إنشاء الفاتورة'));return}
 const url=URL.createObjectURL(blob),d=s.did&&S.d.find(x=>x.id===s.did),ph=s.cph||(d&&d.phone)||'',name=invRef(s)+'.png',txt=invText(s);

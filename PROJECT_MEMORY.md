@@ -1,7 +1,7 @@
 # KOPTAN · مدير أعمالي — Project memory
 
 > Detailed, persistent context for future development sessions. The concise rules are in [CLAUDE.md](CLAUDE.md).
-> Last updated: 2026-11-06 · App version **9.2.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
+> Last updated: 2026-11-06 · App version **9.2.1** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
 
 ---
 
@@ -109,7 +109,7 @@ Rules:
 - `LANG` is restored from `S.k.lang` (authoritative) and mirrored to `localStorage['koptan.lang']` for an instant first paint. `setLang()` saves, sets `<html lang/dir>`, rebuilds chrome and re-renders open pages.
 - Directional icons: use `BACK()`/`FWD()` (they swap chevrons by language). Use logical CSS properties. Numbers, phones, URLs, dates use `dir="ltr"` inputs. Money is wrapped in Unicode isolates (`⁦…⁩`). English formats `$1,234` / `LBP 1,234`; Arabic `1,234 $` / `1,234 ل.ل`. Dates via `toLocaleDateString(loc())`: `ar-EG-u-nu-latn` (Latin digits) or `en-GB`.
 - Stored user text (names, reasons, log messages, default debt reasons created in Arabic) is data and isn't translated. Exceptions: default expense labels (`expName`) and activity-log prefixes (`logTxt`) are translated on display.
-- Coverage check: every Arabic single-quoted literal in core/views/more must be a key in `EN` (script in §9). Currently 731/731.
+- Coverage check: every Arabic single-quoted literal in core/views/more must be a key in `EN` (script in §9). Currently 858/858 (incl. extra.js).
 
 ---
 
@@ -192,6 +192,10 @@ Rules:
 - **Haptics:** `hap(kind)` in core.js: select / tap / press / heavy / success / warning / error. Uses the native `@capacitor/haptics@6.0.3` (APK) or `navigator.vibrate` (browser, only after user activation). Duplicates within 90 ms are merged and stronger feedback wins. Global light tap on every press; success/warning come from toasts; heavy on destructive confirm; error on wrong PIN; success on unlock. `buzz(n)` maps onto it. Setting “الاهتزاز عند اللمس”.
 - Verified: `tests/run.sh shots` all green (e2e 42/42, features 18/18 incl. new F18 haptics with a mocked plugin, self-update, web auto-update, SW upgrade, no overflow).
 - Deployed 9.2.0; *Verify live site* run #6 success. **Build APK run #9 succeeded** → release `v9.2.0-build-9` (debug-signed; includes Haptics, NativeBiometric, LocalNotifications, Camera, Filesystem, Share, CapacitorUpdater).
+
+### 2026-11-06: v9.2.1 professional dark invoice
+- The owner asked for a more professional, fully dark invoice image. `invImage` in extra.js was redrawn: deep titanium-black background with soft burgundy/titanium glows, thin burgundy accent bar, rounded inner frame, logo + store name in a metal gradient + store phone, “فاتورة” in metal with invoice no. + date, “Billed to” block (customer or “Walk-in customer”, phone) and a payment status pill (fully paid green / partial orange / unpaid red) + payment method, rounded table header, summary aligned to the end side (subtotal, discount, burgundy total box, paid, remaining), footer. Money is drawn LTR (`70 $`, `−5 $`), so the minus sign no longer flips in Arabic. Text invoice (`invText`) unchanged. New EN keys: subtotal, invoice no., billed to, walk-in customer, payment status.
+- Verified: previews in AR/EN (partial debt and walk-in/card), `tests/run.sh shots` green (e2e 42/42, features 18/18, self-update, web auto-update, SW upgrade, no overflow), translation coverage 858/858.
 
 ---
 
