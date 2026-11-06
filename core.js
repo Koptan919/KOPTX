@@ -1,7 +1,7 @@
 /* KOPTAN · مدير أعمالي — v9 Titanium Liquid Glass
    core: i18n, state, storage (IndexedDB "pbm" v5 — unchanged schema, fully compatible), formatting, UI primitives, images, files. */
 'use strict';
-const APP_VER='9.3.0';
+const APP_VER='9.2.1';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -133,7 +133,6 @@ const sod=(d=new Date())=>new Date(d.getFullYear(),d.getMonth(),d.getDate()).get
 const toTs=s=>s?new Date(s+'T12:00').getTime():0;
 const toDs=t=>{if(!t)return'';const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const plural=(n,one,many)=>L(n===1?one:many,{n});
-const fitS=(t,n)=>{t=String(t??'');return[...t].length>n?[...t].slice(0,n-1).join('')+'…':t};
 
 /* ---------- money math (single source of truth) ---------- */
 const uc=p=>(+p.cost||0)+(+p.ship||0)+(+p.extra||0);
@@ -146,14 +145,11 @@ function AGG(a,b){let rev=0,gp=0,ex=0,n=0;for(const x of S.s)if(x.date>=a&&x.dat
 /* ---------- feedback ---------- */
 /* haptics: Android native Haptics plugin (precise, needs no extra permission) → browser vibrate fallback.
    kinds: select (very light), tap, press, heavy, success, warning, error. Rapid duplicates are merged; stronger feedback wins. */
-/* intensity S.k.vibLv: l / m / h. Browser pulses under ~15 ms are ignored by many phones, so durations start at 12 ms. */
-const HMS={select:12,tap:20,press:30,heavy:45,success:[18,60,28],warning:[35,70,35],error:[50,50,50,50,70]},HPR={select:0,tap:1,press:2,success:3,warning:3,heavy:4,error:5},HLV={l:.7,m:1,h:1.6},HST=['LIGHT','MEDIUM','HEAVY'];
+const HAP={select:[5,'LIGHT'],tap:[9,'LIGHT'],press:[14,'MEDIUM'],heavy:[26,'HEAVY'],success:[[10,45,16],'SUCCESS'],warning:[[22,60,22],'WARNING'],error:[[35,45,35,45,55],'ERROR']},HPR={select:0,tap:1,press:2,success:3,warning:3,heavy:4,error:5};
 let hapT=0,hapP=-1;
-/* which engine can vibrate here: native (APK with Haptics plugin), web (Android browser), oldapk (APK built before haptics), ios, none */
-function hapInfo(){const C=window.Capacitor;if(C&&C.isNativePlatform&&C.isNativePlatform())return C.Plugins&&C.Plugins.Haptics?'native':'oldapk';if('vibrate'in navigator)return'web';return/iP(hone|ad|od)|Macintosh.*Mobile/.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Mac/.test(navigator.platform))?'ios':'none'}
-function hap(k,force){if(S.k.vib===false&&!force)return;const pr=HPR[k]??1,now=performance.now();if(!force&&now-hapT<90&&pr<=hapP)return;hapT=now;hapP=pr;const lv=S.k.vibLv||'m',x=HLV[lv]||1;
-try{const P=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Haptics;if(P){if(k==='success'||k==='warning'||k==='error')P.notification({type:k.toUpperCase()}).catch(()=>{});else{const i=k==='heavy'?2:Math.max(0,Math.min(2,({select:-1,tap:0,press:1}[k]??0)+{l:0,m:1,h:2}[lv]-1));P.impact({style:HST[i]}).catch(()=>{})}return}
-if(navigator.vibrate&&(!navigator.userActivation||navigator.userActivation.hasBeenActive)){const d=HMS[k]||HMS.tap;navigator.vibrate(Array.isArray(d)?d.map((v,j)=>j%2?v:Math.round(v*x)):Math.round(d*x))}}catch(e){}}
+function hap(k){if(S.k.vib===false)return;const h=HAP[k]||HAP.tap,pr=HPR[k]??1,now=performance.now();if(now-hapT<90&&pr<=hapP)return;hapT=now;hapP=pr;
+try{if(window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Haptics){const P=Capacitor.Plugins.Haptics;(h[1]==='SUCCESS'||h[1]==='WARNING'||h[1]==='ERROR'?P.notification({type:h[1]}):P.impact({style:h[1]})).catch(()=>{});return}
+if(navigator.vibrate&&(!navigator.userActivation||navigator.userActivation.hasBeenActive))navigator.vibrate(h[0])}catch(e){}}
 const buzz=(n=12)=>hap(n>=50?'error':n>=20?'heavy':n<=6?'select':n<=10?'tap':'press');
 /* light tap on every press of an interactive element (specific actions add stronger feedback) */
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('button,a,[role=button],summary,.row,.pc,label.opt');if(t&&!t.disabled)hap('tap')},true);
