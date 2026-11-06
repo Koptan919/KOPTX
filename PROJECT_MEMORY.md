@@ -233,13 +233,14 @@ Rules:
 ### 2026-11-06: permanent APK signing key active + APK 9.5.0 build 10
 - First *Create signing key* run failed at Preconditions: `KEYSTORE_PASSWORD` reached the job empty (secret not added as a repository Actions secret yet). After the owner added it, run 42302382819 succeeded and committed `signing/koptan.jks.enc` + `signing/fingerprint-sha256.txt` (SHA-256 `2E:37:B3:C1:54:CC:27:AD:35:91:FB:74:03:4E:1F:68:E4:F3:55:FE:ED:38:AB:FA:46:A7:34:72:1C:4B:E8:19`) to `claude/new-session-a3tcdh` (commit ea869e1).
 - *Build APK* run #10 (42302437571) succeeded: 8 Capacitor plugins incl. `@capacitor/app@6.0.3`, `assembleRelease` signed with the permanent key, certificate SHA-256 matched the committed fingerprint. Release `v9.5.0-build-10` → https://github.com/Koptan919/Koptan/releases/download/v9.5.0-build-10/KOPTAN.apk (7.7 MB). Contains KOPT X name/icon, back-button fix, everything up to 9.5.0.
+- The owner asked for the file to be called KOPTX: workflows now publish `KOPTX.apk` / `KOPTX.ipa` (iOS permission texts say KOPT X). Releases can't be edited from the session, so *Build APK* run #11 (42303138240) rebuilt it: release `v9.5.0-build-11` → https://github.com/Koptan919/Koptan/releases/download/v9.5.0-build-11/KOPTX.apk (7.7 MB), same permanent certificate (SHA-256 matched). Build 10 (`KOPTAN.apk`) is the same app; build 11 installs over it.
 - The owner's installed APK is debug-signed, so this one install needs: backup → uninstall → install build 10 → restore. Every later release-signed APK installs as an update.
 
 ---
 
 ## 8. Known issues / pending
 
-- **APK signing is ACTIVE** (from build 10, 2026-11-06). `signing/` exists and must never be deleted, regenerated or replaced. The owner needs one last backup → uninstall → install → restore to move from the debug-signed app to build 10.
+- **APK signing is ACTIVE** (from build 10, 2026-11-06). `signing/` exists and must never be deleted, regenerated or replaced. The owner needs one last backup → uninstall → install → restore to move from the debug-signed app to build 10/11.
 - APK minimum is now Android 6.0 (minSdk 23), required by the updater's dependencies.
 - **Not verified on a real device:** Camera/gallery plugin flow, Filesystem/Share save, and the actual self-update download/apply inside the APK (only tested with a mocked plugin). If the native camera call fails with a non-cancel error, the code falls back to the file input.
 - iOS IPA is unsigned and doesn't self-update (Capgo updater not added to iOS). Recommend the PWA on iOS.
