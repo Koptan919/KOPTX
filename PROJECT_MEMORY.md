@@ -177,7 +177,7 @@ Rules:
 ### 2026-11-06: v9.1.1 updates apply by themselves
 - The owner wanted updates to install with a visible notice and no button. Android: `selfUpdate` → “جارٍ تحديث التطبيق إلى الإصدار X…” → download → `next()` → `whenIdle` → “تم تنزيل التحديث — جارٍ إعادة التشغيل…” → `set()`. A failed check resets the throttle, and `online` triggers a retry. Web: SW `updatefound` notice + reload when `version.json` is newer.
 - Note: APKs running the 9.1.0 bundle receive 9.1.1 the old way (“Update now”/next launch). From 9.1.1 on, updates are automatic.
-- Verified: `tests/upd.js` rewritten (newer → auto set + both notices; form open → waits, applies after close; same → nothing; offline → silent, then the `online` event updates); `tests/sw-upgrade.js` publishes a fake next release while the page is open → notice + self-reload. Full `tests/run.sh` green (e2e 42/42, features 17/17).
+- Verified: `tests/upd.js` rewritten (newer → auto set + both notices; form open → waits, applies after close; same → nothing; offline → silent, then the `online` event updates); `tests/sw-upgrade.js` publishes a fake next release while the page is open → notice + self-reload. Full `tests/run.sh` green (e2e 42/42, features 17/17). Deployed 9.1.1; *Verify live site* run #5 all PASS. No APK rebuild needed (web-layer change).
 
 ---
 
