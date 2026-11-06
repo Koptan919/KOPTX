@@ -1,7 +1,7 @@
 # KOPTAN · مدير أعمالي — Project memory
 
 > Detailed, persistent context for future development sessions. The concise rules are in [CLAUDE.md](CLAUDE.md).
-> Last updated: 2026-11-06 · App version **9.1.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
+> Last updated: 2026-11-06 · App version **9.1.1** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
 
 ---
 
@@ -14,8 +14,8 @@ suppliers, notifications, reports, tasks, calendar, backups. **All data stays on
 ### Distribution
 | Channel | Where | Updates |
 |---|---|---|
-| PWA (main) | https://koptan919.github.io/Koptan/ — branch `gh-pages` | Automatic: network-first `index.html`, versioned assets, SW cache `koptan-v<ver>` |
-| Android APK | GitHub Releases `v<ver>-build-<n>` (workflow *Build APK*) | **Self-update** (from 9.0.1): downloads `version.json` + `koptan-<ver>.zip` from the live site via `@capgo/capacitor-updater` (manual mode), applies on next launch or via “Update now”; auto-rollback if the bundle fails to call `notifyAppReady` |
+| PWA (main) | https://koptan919.github.io/Koptan/ — branch `gh-pages` | Automatic: network-first `index.html`, versioned assets, SW cache `koptan-v<ver>`. From 9.1.1 an open app calls `registration.update()` on resume/online; when a new SW activates it reads `version.json` and, only if newer than the running `APP_VER`, shows a notice and reloads (after any open form closes) |
+| Android APK | GitHub Releases `v<ver>-build-<n>` (workflow *Build APK*) | **Automatic self-update** (from 9.0.1; fully automatic from 9.1.1): when online (at start, on resume, on the `online` event; at most hourly unless the last check failed) it shows “updating to vX…”, downloads `koptan-<ver>.zip` via `@capgo/capacitor-updater` (manual mode), calls `next()`, then `set()` by itself with a “restarting…” notice. It waits while a form page (`.pg .ft`) is open (`whenIdle`). Auto-rollback if the bundle fails to call `notifyAppReady` |
 | iOS IPA | Releases `ios-v<ver>-build-<n>` (workflow *Build IPA*) | Unsigned; sideload (Sideloadly/AltStore, 7-day free cert). Recommended iOS path is Safari → Add to Home Screen (PWA) |
 
 Repository: `Koptan919/Koptan`. Working branch used so far: `ccr-e2573824-u58q6u` (source + workflows). `gh-pages` holds only the deployed web files + `version.json` + update zip + `.nojekyll`.
@@ -173,6 +173,11 @@ Rules:
 - Fixed during testing: product-page buttons overflowed at 320px once the real font loaded → `.acts .btn{flex:1 1 0;min-width:0}`. Invoice needed the 500 weight preloaded.
 - Deployed 9.1.0 (bundle 328 KB); live check all PASS. **Build APK run #8 succeeded** → release `v9.1.0-build-8` (still debug-signed: `KEYSTORE_PASSWORD` not added yet).
 - Verified: `tests/run.sh shots` → e2e 42/42, features 17/17 (WebAuthn via Chromium virtual authenticator, camera via fake device + mocked BarcodeDetector, native plugins mocked), self-update, SW upgrade from the pre-v9 app, no overflow at 320/360/412.
+
+### 2026-11-06: v9.1.1 updates apply by themselves
+- The owner wanted updates to install with a visible notice and no button. Android: `selfUpdate` → “جارٍ تحديث التطبيق إلى الإصدار X…” → download → `next()` → `whenIdle` → “تم تنزيل التحديث — جارٍ إعادة التشغيل…” → `set()`. A failed check resets the throttle, and `online` triggers a retry. Web: SW `updatefound` notice + reload when `version.json` is newer.
+- Note: APKs running the 9.1.0 bundle receive 9.1.1 the old way (“Update now”/next launch). From 9.1.1 on, updates are automatic.
+- Verified: `tests/upd.js` rewritten (newer → auto set + both notices; form open → waits, applies after close; same → nothing; offline → silent, then the `online` event updates); `tests/sw-upgrade.js` publishes a fake next release while the page is open → notice + self-reload. Full `tests/run.sh` green (e2e 42/42, features 17/17).
 
 ---
 

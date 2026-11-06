@@ -12,4 +12,13 @@ cp(require('path').resolve(__dirname,'..'),['index.html','sw.js','manifest.json'
 await p.reload();await p.waitForSelector('body.ready',{timeout:15000});console.log('after 1st reopen version:',await p.evaluate(()=>APP_VER),'OldItem kept:',await p.evaluate(()=>S.p.some(x=>x.name==='OldItem')));
 await p.waitForTimeout(2500);console.log('caches now:',await p.evaluate(()=>caches.keys()));
 await ctx.setOffline(true);await p.reload();await p.waitForSelector('body.ready',{timeout:15000});console.log('offline reopen OK, version',await p.evaluate(()=>APP_VER),'products',await p.evaluate(()=>S.p.length));
-await ctx.setOffline(false);console.log('errors:',errs.length?errs:'none');await b.close()})();
+await ctx.setOffline(false);
+/* a new release goes live while the app is open: it must notice, show a message and reload by itself */
+const cur=await p.evaluate(()=>APP_VER),nxt=cur.replace(/\d+$/,n=>+n+1);fs.writeFileSync(path.join(D,'version.json'),JSON.stringify({version:nxt}));
+fs.writeFileSync(path.join(D,'sw.js'),fs.readFileSync(path.join(D,'sw.js'),'utf8').replace(/const V='[^']+'/,"const V='koptan-test-next'"));
+await p.evaluate(()=>{window.__mark=1;window.__toasts=[];new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.classList&&n.classList.contains('toast'))window.__toasts.push(n.textContent)}))).observe(document.body,{childList:true})});
+const seen=[];p.on('console',()=>{});const t0=Date.now();await p.evaluate(()=>dispatchEvent(new Event('online')));
+let reloaded=false;for(let i=0;i<30&&!reloaded;i++){await p.waitForTimeout(300);try{const m=await p.evaluate(()=>{if(window.__toasts)window.__toasts.forEach(t=>window.__seen=(window.__seen||'')+t+'|');return window.__mark});if(m!==1)reloaded=true;else seen.push(await p.evaluate(()=>(window.__toasts||[]).join('|')))}catch(e){}}
+await p.waitForSelector('body.ready',{timeout:15000});
+console.log('web auto-update: notice shown:',seen.some(s=>/تحديث/.test(s)),'| reloaded by itself:',reloaded,'| cache:',await p.evaluate(()=>caches.keys()));
+console.log('errors:',errs.length?errs:'none');await b.close()})();
