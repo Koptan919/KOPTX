@@ -152,11 +152,14 @@ Rules:
 - Verified: `tests/run.sh shots` all green (42/42 incl. new PIN cases, self-update, SW upgrade, no overflow at 320/360/412). Full-glass screenshots reviewed (headless Chromium auto-enables `.lite`, so they need `S.k.lite=false`). Live check 9/9 PASS (version.json 9.0.2, bundle 230 KB).
 - Tests: `upd.js` now derives versions from `APP_VER`; Q1 covers keypad, wrong PIN, keyboard, legacy Arabic-digit PIN, and setting a PIN with Arabic digits.
 
+### 2026-11-06: permanent APK signing key (infrastructure)
+- Added `create-signing-key.yml`; `build-apk.yml` now signs with the decrypted permanent key and verifies the fingerprint (removed the old 4-secret base64 path). Tested the shell logic locally (key generation, AES round trip, wrong password rejected, fingerprint match/mismatch). Waiting for the owner to add `KEYSTORE_PASSWORD`.
+
 ---
 
 ## 8. Known issues / pending
 
-- **APK signing:** builds use the runner's throwaway **debug key** (no `KEYSTORE_*` secrets configured), so a newly built APK cannot install over an older one. Users must back up → uninstall → install → restore once. Self-update (9.0.1+) avoids this for web-layer changes. Pending: a fixed release key. The workflow already supports secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`; the owner has to add them in the repo's GitHub settings.
+- **APK signing (set up 2026-11-06, waiting on the owner):** the permanent-key system is in place but **not active yet**. The owner must add the repository secret `KEYSTORE_PASSWORD` (≥12 chars, chosen by them, never shared). Then run **Create signing key** once, then **Build APK**. Until then builds are debug-signed. The first release-signed APK needs one last back up → uninstall → install → restore; after that every APK installs as an update. Check `signing/` exists to know whether this is done.
 - APK minimum is now Android 6.0 (minSdk 23), required by the updater's dependencies.
 - **Not verified on a real device:** Camera/gallery plugin flow, Filesystem/Share save, and the actual self-update download/apply inside the APK (only tested with a mocked plugin). If the native camera call fails with a non-cancel error, the code falls back to the file input.
 - iOS IPA is unsigned and doesn't self-update (Capgo updater not added to iOS). Recommend the PWA on iOS.
@@ -188,6 +191,12 @@ tools/publish-web.sh /tmp/ghp
 cd /tmp/ghp && git add -A && git commit -m "Deploy KOPTAN vX.Y.Z" && git push origin gh-pages
 ```
 Then run the **Verify live site** workflow (GitHub Actions → `verify-pages.yml`, dispatch on the working branch) and read the log. The cloud sandbox can't reach `*.github.io` directly.
+
+### APK signing key (permanent)
+- `create-signing-key.yml` (run **once**): needs secret `KEYSTORE_PASSWORD` (≥12 chars). It generates an RSA-4096 PKCS12 key (alias `koptan`, valid 100 years) on the runner, encrypts it with `openssl enc -aes-256-cbc -pbkdf2 -iter 600000` using that password, checks the encrypted copy decrypts to the same key, and commits `signing/koptan.jks.enc` + `signing/fingerprint-sha256.txt` to the dispatched branch. The plain key never leaves the runner. Refuses to run if the key already exists.
+- `build-apk.yml`: if `signing/koptan.jks.enc` exists it **must** decrypt (else the build fails; it never falls back to debug). It signs `assembleRelease` and checks the APK's certificate SHA-256 equals the committed fingerprint. Without the file it builds debug.
+- Losing the password = losing the ability to ship APK updates that install over the app. The owner should keep it in a password manager. (Web-layer self-updates keep working regardless.)
+- Local round-trip test of the generate/encrypt/decrypt/fingerprint steps passed (keytool 17 + openssl). Not yet run on GitHub as of this entry.
 
 ### Native builds (GitHub Actions, `workflow_dispatch`, publish a Release)
 - **Build APK** (`build-apk.yml`): Capacitor 6 + camera/filesystem/share + `@capgo/capacitor-updater@6.25.6`; forces `androidx.work 2.9.1`; minSdk 23; permissions CAMERA, READ_MEDIA_IMAGES, READ_EXTERNAL_STORAGE(≤32); icon replaced; `versionName` = `APP_VER`, `versionCode` = 100 + run number; release-signed if `KEYSTORE_*` secrets exist, otherwise debug. Release tag `v<ver>-build-<n>`; direct link `https://github.com/Koptan919/Koptan/releases/download/<tag>/KOPTAN.apk`.

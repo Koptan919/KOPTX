@@ -10,6 +10,7 @@ Ships as: a PWA on GitHub Pages (https://koptan919.github.io/Koptan/), an Androi
 - Debts are never added to profit (no double counting). All money math goes through `AGG`, `prof`, `sRev`, `uc` in `core.js`.
 - Every UI string goes through `L('Arabic source')` and needs an English entry in `i18n.js`. Use logical CSS (`inset-inline-*`, `margin-inline-*`) so RTL and LTR both work.
 - Keep the Titanium × Burgundy Liquid Glass look (tokens at the top of `app.css`). Keep `.lite` (performance mode) working: no live `backdrop-filter` there.
+- **APK signing key is permanent.** `signing/koptan.jks.enc` (AES-256, password = secret `KEYSTORE_PASSWORD`) + `signing/fingerprint-sha256.txt`. Never delete, regenerate or replace them. A new key means no APK can install over the user's app again. Never print or log the password.
 - Make the smallest change that does the job. Don't reformat or restructure files you aren't changing.
 
 ## Layout
@@ -22,7 +23,7 @@ Ships as: a PWA on GitHub Pages (https://koptan919.github.io/Koptan/), an Androi
 4. Commit on the working branch and push.
 5. Deploy: check out `gh-pages` in a worktree, run `tools/publish-web.sh <worktree>`, commit, push. This also publishes `version.json` + `koptan-<ver>.zip`, which installed APKs download as their update.
 6. Run the `Verify live site` workflow and read its log. Only claim success if every line says PASS.
-7. Rebuild the APK/IPA (workflows `Build APK` / `Build IPA`) only when native code or plugins change.
+7. Rebuild the APK/IPA (workflows `Build APK` / `Build IPA`) only when native code or plugins change. Build APK signs with the permanent key and fails if the signature doesn't match the fingerprint.
 
 ## After every task
 Update **PROJECT_MEMORY.md**: add a dated entry under *Development log* (what changed, how it was verified), and update *Known issues / pending*. Only record things you actually verified.

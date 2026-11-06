@@ -6,10 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      KS: ${{ secrets.KEYSTORE_BASE64 }}
       KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
-      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-      KEY_PASS: ${{ secrets.KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -46,21 +43,33 @@ jobs:
           npx cap sync android
       - name: Build APK
         run: |
+          set -euo pipefail
           cd app/android
           chmod +x gradlew
-          if [ -n "$KS" ]; then
-            echo "$KS" | base64 -d > "$RUNNER_TEMP/koptan.jks"
+          ENC="$GITHUB_WORKSPACE/signing/koptan.jks.enc"
+          if [ -f "$ENC" ]; then
+            # permanent key (created once by the "Create signing key" workflow) — never fall back to a debug key here
+            if [ -z "$KS_PASS" ]; then echo "::error::signing/koptan.jks.enc exists but the KEYSTORE_PASSWORD secret is missing."; exit 1; fi
+            K="$RUNNER_TEMP/koptan.jks"
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -in "$ENC" -out "$K" -pass env:KS_PASS || { echo "::error::Could not decrypt the signing key — KEYSTORE_PASSWORD is wrong."; exit 1; }
             ./gradlew assembleRelease \
-              -Pandroid.injected.signing.store.file="$RUNNER_TEMP/koptan.jks" \
+              -Pandroid.injected.signing.store.file="$K" \
               -Pandroid.injected.signing.store.password="$KS_PASS" \
-              -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
-              -Pandroid.injected.signing.key.password="$KEY_PASS"
+              -Pandroid.injected.signing.key.alias=koptan \
+              -Pandroid.injected.signing.key.password="$KS_PASS"
+            rm -f "$K"
             cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/KOPTAN.apk"
-            echo "SIGNING=release (fixed key — installs as an update)" >> "$GITHUB_ENV"
+            # the APK must carry exactly the committed certificate
+            AS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)/apksigner
+            GOT=$("$AS" verify --print-certs "$GITHUB_WORKSPACE/KOPTAN.apk" | sed -n 's/.*certificate SHA-256 digest: *//p' | head -1 | tr -d ':' | tr 'A-F' 'a-f')
+            WANT=$(tr -d ': \n' < "$GITHUB_WORKSPACE/signing/fingerprint-sha256.txt" | tr 'A-F' 'a-f')
+            echo "APK certificate SHA-256: $GOT"
+            if [ -z "$GOT" ] || [ "$GOT" != "$WANT" ]; then echo "::error::APK signature does not match signing/fingerprint-sha256.txt"; exit 1; fi
+            echo "SIGNING=release, permanent KOPTAN key (installs as an update over earlier release-signed builds)" >> "$GITHUB_ENV"
           else
             ./gradlew assembleDebug
             cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/KOPTAN.apk"
-            echo "SIGNING=debug (temporary key)" >> "$GITHUB_ENV"
+            echo "SIGNING=debug (temporary key — run 'Create signing key' once to get updatable builds)" >> "$GITHUB_ENV"
           fi
       - uses: actions/upload-artifact@v4
         with:
