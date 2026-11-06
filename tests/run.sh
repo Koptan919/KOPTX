@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs the KOPTAN browser test suite against the working tree.
-#   tests/run.sh            → e2e (42 checks) + Android self-update + service-worker upgrade
+#   tests/run.sh            → e2e (42 checks) + Android self-update + v9.1 features + service-worker upgrade
 #   tests/run.sh shots      → also screenshots every screen at 320/412 (ar) and 360 (en) + overflow check
 # Needs Node and Playwright with Chromium (require('playwright') must resolve).
 # The "old" site is the pre-v9 app (tests/fixtures/v8) — used to seed data in the original
@@ -19,6 +19,7 @@ sleep 1
 cd "$ROOT/tests"
 node e2e.js "$WORK/shots"
 node upd.js
+node features.js "$WORK/shots"
 SITE="$WORK/site" node sw-upgrade.js
 if [ "${1:-}" = "shots" ]; then node shots2.js "$WORK/shots"; fi
 echo "Screenshots: $WORK/shots"

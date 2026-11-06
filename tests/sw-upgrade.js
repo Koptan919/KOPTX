@@ -8,7 +8,7 @@ const U='http://localhost:8123/swt/index.html';await p.goto(U);await p.waitForTi
 await p.evaluate(async()=>{const x={id:uid(),name:'OldItem',cost:1,price:2,qty:3,min:1,sold:0,created:Date.now(),imgs:[],img:''};S.p.push(x);await put('p',x)});
 await p.waitForFunction(()=>navigator.serviceWorker.controller,null,{timeout:10000});console.log('old SW controls page; caches:',await p.evaluate(()=>caches.keys()));
 // deploy new version over the old one
-cp(require('path').resolve(__dirname,'..'),['index.html','sw.js','manifest.json','icon-192.png','icon-512.png','app.css','i18n.js','core.js','views.js','more.js']);
+cp(require('path').resolve(__dirname,'..'),['index.html','sw.js','manifest.json','icon-192.png','icon-512.png','app.css','i18n.js','core.js','views.js','more.js','extra.js']);fs.mkdirSync(path.join(D,'fonts'),{recursive:true});fs.readdirSync(path.resolve(__dirname,'../fonts')).forEach(f=>fs.copyFileSync(path.resolve(__dirname,'../fonts',f),path.join(D,'fonts',f)));
 await p.reload();await p.waitForSelector('body.ready',{timeout:15000});console.log('after 1st reopen version:',await p.evaluate(()=>APP_VER),'OldItem kept:',await p.evaluate(()=>S.p.some(x=>x.name==='OldItem')));
 await p.waitForTimeout(2500);console.log('caches now:',await p.evaluate(()=>caches.keys()));
 await ctx.setOffline(true);await p.reload();await p.waitForSelector('body.ready',{timeout:15000});console.log('offline reopen OK, version',await p.evaluate(()=>APP_VER),'products',await p.evaluate(()=>S.p.length));

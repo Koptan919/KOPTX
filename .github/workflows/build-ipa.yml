@@ -13,7 +13,7 @@ jobs:
       - name: Prepare project
         run: |
           mkdir -p app/www
-          cp index.html sw.js manifest.json app.css i18n.js core.js views.js more.js icon-192.png icon-512.png app/www/
+          cp -r index.html sw.js manifest.json app.css i18n.js core.js views.js more.js extra.js fonts icon-192.png icon-512.png app/www/
           cd app
           npm init -y
           npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/ios@6 @capacitor/camera@6 @capacitor/filesystem@6 @capacitor/share@6
