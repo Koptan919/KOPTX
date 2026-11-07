@@ -344,3 +344,6 @@ button,a,.row,.pc,[role=button],summary,.chips button,.seg button,.pk{touch-acti
 
 /* v9.8 backup page */
 .bkst{display:flex;align-items:center;gap:12px;padding:14px;margin-bottom:6px}.bkst b{display:block;font-size:15px}.bkst small{color:var(--mu);font-size:12.5px}.bkst.o{border-color:rgba(243,171,85,.35)}.bkw .th svg{width:22px;height:22px}.bkw .t small{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.45}.bkw+.bkw{margin-top:0}.list+.sub{margin-top:10px}
+
+/* v9.9 settings categories, grouped More menu */
+.setc{margin-top:6px}.wrap>.sh3:first-child{margin-top:4px}

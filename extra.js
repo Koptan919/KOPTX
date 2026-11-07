@@ -177,6 +177,7 @@ document.addEventListener('click',async e=>{const b=e.target.closest&&e.target.c
 /* =================== what's new: one notification per installed update =================== */
 /* newest first; add an entry with every release (Arabic source, EN in i18n.js) */
 const CHANGES=[
+{v:'9.9.0',d:'2026-11-07',n:['إعدادات أبسط: قائمة قصيرة، وكل قسم في صفحته','قائمة «المزيد» مرتبة في ثلاث مجموعات واضحة']},
 {v:'9.8.0',d:'2026-11-07',n:['قسم مستقل للنسخ الاحتياطي: اختر Google Drive أو واتساب أو الهاتف أو داخل التطبيق','الاستعادة والنسخ التلقائي في نفس المكان']},
 {v:'9.7.0',d:'2026-11-07',n:['بيع عدة منتجات في فاتورة واحدة (سلة)','حفظ نسخة خارج الهاتف إلى Google Drive أو واتساب، مع تذكير في الرئيسية','كشف حساب للزبون وتذكير بالدين عبر واتساب','صندوق اليوم: النقد المتوقع في الدرج ومقارنته بالفعلي','تقارير جديدة: الأرباح حسب التصنيف، أفضل الزبائن، أيام الأسبوع','أنواع للمنتج: مقاسات وألوان بمخزون مستقل','إعدادات مرتبة أوضح']},
 {v:'9.6.0',d:'2026-11-06',n:['الاسم والأيقونة لطريقة الفتح حسب هاتفك: الوجه أو البصمة']},
@@ -329,3 +330,19 @@ return`<div class="card bkst ${old?'o':'g'}"><span class="th ${old?'o':'g'} lg">
 <h3 class="sh3">${L('النسخ التلقائي')}</h3><section class="grp">${SSG(LU.repl,'o',L('النسخ الاحتياطي التلقائي'),L('نسخة داخل التطبيق + تذكير بحفظ نسخة خارج الهاتف'),[['off','إيقاف'],['d','يوميًا'],['w','أسبوعيًا']].map(([k,l])=>`<button class="${(S.k.abk||'w')===k?'on':''}" data-abk="${k}">${L(l)}</button>`).join(''))}${SWI('nfBk',LU.bell,'tn',L('تذكير النسخ الاحتياطي'),L('إذا مرّ أسبوع بلا نسخة'),S.k.nfBk!==false)}</section>
 <h3 class="sh3">${L('الاستعادة')}</h3><div class="bar"><button class="btn" data-act="restore">${SV(LU.ul)}${L('استعادة من ملف')}</button></div>${snapsHTML()}`},
 b(el){el.addEventListener('click',async e=>{const b=e.target.closest('[data-sw]');if(!b)return;const k=b.dataset.sw;S.k[k]=S.k[k]===false;await saveK();buzz(6);refresh()})}};
+
+/* =================== v9.9: simpler settings — a short list of categories, each opens its own page =================== */
+/* the full settings HTML (more.js SUBS.set.f) is split by its section headings; nothing inside the sections changed */
+const _setF0=SUBS.set.f,_setB0=SUBS.set.b;
+const SETC=[['data',LU.share,'g','النسخ الاحتياطي والبيانات',['البيانات والنسخ الاحتياطي']],['sec',LU.lock,'r','الأمان والخصوصية',['الأمان والخصوصية']],['inv',LU.receipt,'r','الفاتورة',['الفاتورة']],['cur',LU.dollar,'g','العملة والبيع',['العملة والبيع']],['nf',LU.bell,'o','الإشعارات',['الإشعارات']],['look',LU.lang,'tn','اللغة والمظهر',['اللغة','المظهر والاهتزاز']],['about',LU.info,'tn','حول التطبيق',['حول التطبيق']]];
+function setParts(){const h=_setF0.call(SUBS.set),i=h.indexOf('<h3 class="sh3">');return{card:h.slice(0,i),segs:h.slice(i).split('<h3 class="sh3">').slice(1).map(x=>'<h3 class="sh3">'+x)}}
+function setSum(k){const on=['nfStock','nfDebt','nfBk','nfUpd'].filter(x=>S.k[x]!==false).length+(S.k.sumOn?1:0);return{
+data:S.k.lastBk?L('آخر نسخة: {d}',{d:day(S.k.lastBk)}):L('لم تؤخذ أي نسخة بعد'),
+sec:(S.k.pin?L('القفل مفعّل'):L('القفل غير مفعّل'))+(S.k.bio?' · '+bioName():'')+(S.k.hide?' · '+L('المبالغ مخفية'):''),
+inv:'INV-'+String((S.k.invN||0)+1).padStart(5,'0')+' · '+(S.k.invNote?L('نص مخصص'):L('شكرًا لتعاملكم')),
+cur:(S.k.cur==='LBP'?L('ل.ل'):'$')+' · '+L('سعر الصرف {n}',{n:NF0.format(S.k.rate)}),
+nf:L('{n} من 5 مفعّلة',{n:on}),
+look:(LANG==='en'?'English':'العربية')+' · '+(S.k.vib!==false?L('الاهتزاز مفعّل'):L('الاهتزاز متوقف')),
+about:'KOPT X · v'+APP_VER}[k]}
+SUBS.set.f=function(){const{card}=setParts();return card+`<div class="list setc">${SETC.map(([k,ic,c,t])=>`<button class="row mi" data-act="sub" data-id="set:${k}"><span class="th ${c}">${SV(ic)}</span><span class="t"><b>${L(t)}</b><small>${esc(setSum(k))}</small></span>${k==='data'&&bkOld()?'<span class="bdg">!</span>':''}${SV(FWD(),'ch')}</button>`).join('')}</div>`};
+SETC.forEach(([k,,,t,hs])=>{SUBS['set:'+k]={t,f(){const{segs}=setParts(),want=hs.map(x=>L(x)),pick=segs.filter(s=>want.some(w=>s.startsWith('<h3 class="sh3">'+w+'</h3>')));return pick.length===1?pick[0].replace(/^<h3 class="sh3">[^<]*<\/h3>/,''):pick.join('')},b(el){_setB0(el)}}});
