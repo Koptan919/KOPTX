@@ -335,3 +335,9 @@ button,a,.row,.pc,[role=button],summary,.chips button,.seg button,.pk{touch-acti
 .chg h3{flex-wrap:wrap}.chg h3 small{margin-inline-start:auto;color:var(--mu2);font-size:12px;font-weight:500}
 .chg .pill{font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--burg);color:#fff}
 .chl{margin:0;padding-inline-start:20px;display:flex;flex-direction:column;gap:7px}.chl li{color:var(--tx);font-size:14px;line-height:1.5}.chl li::marker{color:var(--bu4)}
+
+/* v9.7 cart, backup card */
+.crow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--gbd)}.crow .t{display:flex;flex-direction:column;gap:2px;min-width:0}.crow .t b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.crow .t small{color:var(--mu);font-size:12.5px}
+.crow .stp{min-width:0;gap:6px}.crow .stp button{width:44px;min-height:44px}.crow .inl{min-height:44px;padding:6px 8px;text-align:center;font-weight:700;min-width:0}.crow .stp .inl{flex:1 1 0;width:0;font-size:18px}.crow .cpr .inl{width:100%}.crow .cx{width:40px;height:40px;justify-self:end}.cpr{display:flex;flex-direction:column;gap:2px;width:112px}.cpr small{color:var(--mu);font-size:11.5px}.cmt{padding:4px 0 10px}
+.tocart{margin:-4px 0 12px}
+.alert.o{color:var(--or);background:linear-gradient(150deg,rgba(243,171,85,.16),rgba(243,171,85,.05));border-color:rgba(243,171,85,.32)}.alert span small{display:block;font-weight:500;font-size:12px;color:var(--mu);margin-top:2px}
