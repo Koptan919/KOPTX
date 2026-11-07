@@ -1,7 +1,7 @@
 # KOPT X (formerly KOPTAN) · مدير أعمالي — Project memory
 
 > Detailed, persistent context for future development sessions. The concise rules are in [CLAUDE.md](CLAUDE.md).
-> Last updated: 2026-11-06 · App version **9.8.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
+> Last updated: 2026-11-06 · App version **9.9.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
 
 ---
 
@@ -263,6 +263,13 @@ All new code is at the end of `extra.js` (section “v9.7”). Small hooks are i
 - The page has: a status card (last backup time or warning, record count); 4 methods (`ACT.bkGo`): Google Drive and WhatsApp (share sheet with a toast telling which app to pick; an app can't be preselected), save on the phone, quick in-app copy (`ACT.snapNow`); automatic backup frequency and reminder switch; restore from file; in-app snapshots list.
 - “Save on the phone” uses `BKM='file'` read by a second `saveFile` wrapper. Natively it writes `Documents/KOPTX/<file>` with Filesystem (`DOCUMENTS`, recursive) and falls back to the original saveFile; on the web it downloads. `BKM` is reset after every run.
 - Verified: new F32 (home card opens the page, 4 methods, the file method downloads `koptan-backup-*.json` and sets lastBk, the in-app copy increments `snapN`, auto-backup switch, restore button, settings row); F31 updated for `bkOpen`. Screenshots (AR/EN, 360 px) reviewed after letting the method descriptions wrap. Full `tests/run.sh shots`: e2e 42/42, features 32/32, self-update, SW upgrade, no overflow. Deployed 9.8.0; *Verify live site* run 42359658734 all PASS. Native Documents write not verified on a real phone.
+
+### 2026-11-07: v9.9.0 simpler settings and More menu
+- **Settings** are now a short list of categories under the store card. Each category opens its own page (`SUBS['set:<k>']`, keys `data sec inv cur nf look about`; end of extra.js).
+  - The original `SUBS.set.f` from more.js is kept as `_setF0` and split by its `<h3 class="sh3">` headings at render time (`setParts()`). Category pages show the matching section(s); “Language & look” shows two. All rows, switches and their handlers are unchanged (`_setB0` is attached to each category page).
+  - Each category row shows a live summary (`setSum`: last backup, lock/biometric, next invoice number, currency + rate, notifications on, language + vibration, version).
+- **More menu** (`vMore`): three headed groups. Selling & tracking: reports, customers, expenses, suppliers, reorder. Organising: notifications, tasks, calendar. Data & settings: backup, data center, settings.
+- Tests updated to open the right category (`openSub('set:<k>')`): e2e O1/R1, features F2/F11/F14/F20/F21/F25/F31/F32, upd.js. F31 now checks the 7 categories and that each page has content.
 
 ---
 

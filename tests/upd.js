@@ -20,6 +20,6 @@ if(label==='busy'){ok(c.includes('download')&&c.includes('next'),label+': downlo
 await p.locator('.pg [data-x]').last().click();await p.waitForTimeout(400);if(await p.locator('.sheet [data-y]').count())await p.locator('.sheet [data-y]').click();await p.waitForTimeout(2200);ok((await calls()).includes('set'),label+': applied after the form closed')}
 if(label==='same'||label==='offline'){ok(!c.includes('download'),label+': nothing downloaded');ok(!/تعذر/.test(await toasts()),label+': silent (no error) on auto check')}
 if(label==='offline'){state=NEW;await p.evaluate(()=>dispatchEvent(new Event('online')));await p.waitForTimeout(3500);ok((await calls()).includes('set'),label+': back online → updates by itself')}
-await p.evaluate(()=>openSub('set'));await p.waitForTimeout(300);await p.locator('[data-act=upd]').click();await p.waitForTimeout(900);R.push('   manual check toasts ('+label+'): '+(await p.locator('.toast').allInnerTexts()).join(' | '));
+await p.evaluate(()=>openSub('set:about'));await p.waitForTimeout(300);await p.locator('[data-act=upd]').click();await p.waitForTimeout(900);R.push('   manual check toasts ('+label+'): '+(await p.locator('.toast').allInnerTexts()).join(' | '));
 ok(errs.length===0,label+': no JS errors '+errs.join('|'));await ctx.close()}
 console.log(R.join('\n'));await b.close()})();
