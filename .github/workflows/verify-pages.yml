@@ -16,7 +16,7 @@ jobs:
         run: |
           cat > check.js <<'JS'
           const {chromium}=require('playwright');
-          const URL='https://koptan919.github.io/Koptan/';
+          const URL='https://koptan919.github.io/KOPTX/';
           (async()=>{const b=await chromium.launch();const ctx=await b.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const p=await ctx.newPage();
           const errs=[];p.on('pageerror',e=>errs.push(e.message));const R=[];const ok=(c,m)=>{R.push((c?'PASS ':'FAIL ')+m);if(!c)process.exitCode=1};
           await p.goto(URL,{waitUntil:'networkidle'});await p.waitForSelector('body.ready',{timeout:20000});

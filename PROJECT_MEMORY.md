@@ -1,7 +1,7 @@
 # KOPT X (formerly KOPTAN) · مدير أعمالي — Project memory
 
 > Detailed, persistent context for future development sessions. The concise rules are in [CLAUDE.md](CLAUDE.md).
-> Last updated: 2026-11-06 · App version **9.9.1** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
+> Last updated: 2026-11-06 · App version **9.9.2** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
 
 ---
 
@@ -14,7 +14,7 @@ suppliers, notifications, reports, tasks, calendar, backups. **All data stays on
 ### Distribution
 | Channel | Where | Updates |
 |---|---|---|
-| PWA (main) | https://koptan919.github.io/Koptan/ — branch `gh-pages` | Automatic: network-first `index.html`, versioned assets, SW cache `koptan-v<ver>`. From 9.1.1 an open app calls `registration.update()` on resume/online; when a new SW activates it reads `version.json` and, only if newer than the running `APP_VER`, shows a notice and reloads (after any open form closes) |
+| PWA (main) | https://koptan919.github.io/KOPTX/ (was /Koptan/ until the repo rename on 2026-11-07) — branch `gh-pages` | Automatic: network-first `index.html`, versioned assets, SW cache `koptan-v<ver>`. From 9.1.1 an open app calls `registration.update()` on resume/online; when a new SW activates it reads `version.json` and, only if newer than the running `APP_VER`, shows a notice and reloads (after any open form closes) |
 | Android APK | GitHub Releases `v<ver>-build-<n>` (workflow *Build APK*) | **Automatic self-update** (from 9.0.1; fully automatic from 9.1.1): when online (at start, on resume, on the `online` event; at most hourly unless the last check failed) it shows “updating to vX…”, downloads `koptan-<ver>.zip` via `@capgo/capacitor-updater` (manual mode), calls `next()`, then `set()` by itself with a “restarting…” notice. It waits while a form page (`.pg .ft`) is open (`whenIdle`). Auto-rollback if the bundle fails to call `notifyAppReady` |
 | iOS IPA | Releases `ios-v<ver>-build-<n>` (workflow *Build IPA*) | Unsigned; sideload (Sideloadly/AltStore, 7-day free cert). Recommended iOS path is Safari → Add to Home Screen (PWA) |
 
@@ -282,6 +282,12 @@ All new code is at the end of `extra.js` (section “v9.7”). Small hooks are i
 - The owner asked for a file explaining how the app and its auto-update were built, to teach Claude Code. Added `docs/BUILD-GUIDE.md` (Arabic). It covers: architecture and file roles, data rules, i18n, both update paths (Service Worker + `version.json` + reload; Capgo manual mode download → next → set, `notifyAppReady` rollback, `whenIdle`), `publish-web.sh`, the four version bumps, permanent APK signing, real build problems and fixes, tests, the release checklist and a ready prompt for building a similar app. Written from the current code (9.9.1). Docs only; no app change, no deploy.
 - Also added `docs/THEME.md`, a guide to the Titanium × Burgundy Liquid Glass theme for Claude: exact `:root` tokens, ambient background, static vs floating glass, `.lite`, components (btn, fab, th colours, switch, seg, sheet, toast, metal logo), font/icons, 10 rules and a ready prompt. Values copied from `app.css`.
 
+### 2026-11-07: v9.9.2 auto-update after the repo rename (Koptan → KOPTX)
+- The owner reported an auto-update error. Cause: the repo was renamed to `Koptan919/KOPTX`, so the Pages site moved to `https://koptan919.github.io/KOPTX/`; `/Koptan/` no longer serves the app (Verify run 42380013390 failed). The installed APK fetched only `…/Koptan/version.json`.
+- Fix: `more.js` now tries `UPD_URLS` in order (`/KOPTX/version.json`, then `/Koptan/version.json`) and resolves `j.zip` against the URL that answered (so a relative zip works too). `tools/publish-web.sh` writes the zip URL from `PAGES_BASE` (default `https://koptan919.github.io/KOPTX`). `verify-pages.yml` checks `/KOPTX/`. `tests/upd.js` has a new case `moved` (new address down → old address used, relative zip resolved).
+- Session: added `koptan919/koptx` with `add_repo` (push). `gh api` against the old name fails (numeric-id redirect blocked), so use repo name `KOPTX` for API calls. A shallow clone sits at `/home/user/koptx` (default branch only); work continues in `/home/user/Koptan` (its origin URL still says Koptan, pushes go through GitHub's redirect).
+- **Installed APKs running a bundle before 9.9.2 only know `/Koptan/`**, so they need either the repo renamed back or one install of a new APK (build 12+). Web/PWA users must open the new address once (same origin, so their IndexedDB data is still there).
+
 ---
 
 ## 8. Known issues / pending
@@ -301,7 +307,7 @@ All new code is at the end of `extra.js` (section “v9.7”). Small hooks are i
 - `tests/sw-upgrade.js` offline reopen can time out occasionally (seen once in 9.5.0); rerun before investigating.
 - Cart, cash box, statement and variants (9.7.0) are verified in Chromium only, not on a real phone yet. Sharing the backup file to Drive/WhatsApp depends on the browser supporting file sharing (Android Chrome yes; desktop falls back to download).
 - Test start can time out occasionally (features suite first `ready`, SW-upgrade offline reopen); rerun before investigating.
-- **Repository renamed to `Koptan919/KOPTX` by the owner (2026-11-07).** *Verify live site* run 42380013390 failed: the app no longer loads at `koptan919.github.io/Koptan/` (Pages URLs don't redirect after a rename). Installed APKs check `…/Koptan/version.json` (`UPD_URL`), so they get no updates while this lasts. Recommended fix: rename the repo back to `Koptan`. The alternative (switch every URL to `/KOPTX/`: UPD_URL, publish-web.sh, verify-pages.yml, tests/upd.js) needs one new APK install. Waiting for the owner's choice. This session's GitHub scope is the old name; `gh api` calls through the rename redirect are blocked, but MCP tools with `Koptan` still work.
+- **(Handled in 9.9.2, see log.)** Repository renamed to `Koptan919/KOPTX` by the owner (2026-11-07). *Verify live site* run 42380013390 failed: the app no longer loads at `koptan919.github.io/Koptan/` (Pages URLs don't redirect after a rename). Installed APKs check `…/Koptan/version.json` (`UPD_URL`), so they get no updates while this lasts. Recommended fix: rename the repo back to `Koptan`. The alternative (switch every URL to `/KOPTX/`: UPD_URL, publish-web.sh, verify-pages.yml, tests/upd.js) needs one new APK install. Waiting for the owner's choice. This session's GitHub scope is the old name; `gh api` calls through the rename redirect are blocked, but MCP tools with `Koptan` still work.
 - Pending ideas: delta updates; iOS self-update; ML Kit barcode plugin if WebView lacks BarcodeDetector.
 
 ---

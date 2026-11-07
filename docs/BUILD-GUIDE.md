@@ -88,7 +88,7 @@ node -e "global.window={};require('./i18n.js');const fs=require('fs');const k=ne
 3. يكتب **`version.json`**:
 
 ```json
-{"version":"9.9.1","zip":"https://koptan919.github.io/Koptan/koptan-9.9.1.zip"}
+{"version":"9.9.1","zip":"https://koptan919.github.io/KOPTX/koptan-9.9.1.zip"}
 ```
 
 الإصدار يُقرأ تلقائيًا من `const APP_VER='9.9.1'` في `core.js`.

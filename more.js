@@ -215,14 +215,15 @@ document.addEventListener('keydown',kd,true);dots()}
 
 
 /* =================== Android self-update (bundle downloaded from the live site; data & offline mode untouched) =================== */
-const UPD_URL='https://koptan919.github.io/Koptan/version.json';
+/* the repository was renamed Koptan → KOPTX (2026-11-07), which moved the Pages site; try the new address first, then the old one */
+const UPD_URLS=['https://koptan919.github.io/KOPTX/version.json','https://koptan919.github.io/Koptan/version.json'],UPD_URL=UPD_URLS[0];
 const newer=(a,b)=>{const x=String(a||'').split('.').map(n=>+n||0),y=String(b||'').split('.').map(n=>+n||0);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return(x[i]||0)>(y[i]||0)}return false};
 let updBusy=false,updAt=0;
 /* apply only when no form is open, so unsaved input is never lost */
 function whenIdle(fn){if(!$('.pg .ft'))return fn();toast(L('سيُكمَل تحديث التطبيق بعد إغلاق النموذج المفتوح'));const o=new MutationObserver(()=>{if(!$('.pg .ft')){o.disconnect();fn()}});o.observe(document.body,{childList:true})}
 async function selfUpdate(manual){if(!hasPl('CapacitorUpdater')){if(manual)ok(L('هذه النسخة تتحدّث تلقائيًا عند فتحها مع الإنترنت ✓'));return}
 if(updBusy)return;if(!manual&&Date.now()-updAt<3600e3)return;updBusy=true;let done=null;
-try{const r=await fetch(UPD_URL+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('http '+r.status);const j=await r.json();updAt=Date.now();
+try{let j=null,src='';for(const u of UPD_URLS){try{const r=await fetch(u+'?t='+Date.now(),{cache:'no-store'});if(r.ok){j=await r.json();src=u;break}}catch(e){}}if(!j)throw new Error('version.json unreachable');if(j.zip)j.zip=new URL(j.zip,src).href;updAt=Date.now();
 if(!j||!j.version||!j.zip||!newer(j.version,APP_VER)){if(manual)ok(L('لديك أحدث إصدار ({v}) ✓',{v:APP_VER}));return}
 done=toastP(L('جارٍ تحديث التطبيق إلى الإصدار {v}…',{v:j.version}));
 const b=await capCall('CapacitorUpdater','download',{url:j.zip,version:j.version});done();done=null;
