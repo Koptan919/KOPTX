@@ -1,7 +1,7 @@
 # KOPT X (formerly KOPTAN) · مدير أعمالي — Project memory
 
 > Detailed, persistent context for future development sessions. The concise rules are in [CLAUDE.md](CLAUDE.md).
-> Last updated: 2026-11-06 · App version **9.6.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
+> Last updated: 2026-11-06 · App version **9.7.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
 
 ---
 
@@ -241,6 +241,23 @@ Rules:
 - `extra.js`: `BIOT` / persisted `S.k.bioT` = `'face'|'finger'|'any'`. Native: `NativeBiometric.isAvailable().biometryType` 1,3 → finger; 2,4 → face; anything else (6 = multiple, 5 = iris) → any. Web: `webBioKind()` heuristic (iPhone with a screen of 812 px or more → face, other iPhone or Mac → finger, iPad and the rest → any). `bioName()` / `bioIcon()` (new Lucide `LU.face` = scan-face in core.js) drive the settings row title and subtitle, the lock-screen button (updated once `bioAvail` resolves), prompt subtitles and toasts. Unlocking itself is unchanged.
 - Verified: new F25 (native mock, types 2/4/3/6: settings row, enable toast, lock button, unlock by the prompt), `tests/run.sh shots` green (e2e 42/42, features 25/25, self-update, SW upgrade, no overflow). F21 no longer hard-codes versions (it failed only because 9.3.1 dropped off the 3-item list). Screenshots of the face case reviewed. Web-layer only: works with APK build 10/11. Deployed 9.6.0; *Verify live site* run 42305901223 all PASS.
 
+### 2026-11-07: v9.7.0 cart, off-device backup, customer statement, cash box, reports, variants, settings order
+All new code is at the end of `extra.js` (section “v9.7”). Small hooks are in views.js (sale page button, `varHTML` on the product page) and more.js (settings order).
+- **Cart** (`cartPage(pre)`, `ACT.cart`). Opened from the sale page button “إضافة منتج آخر لنفس الفاتورة” (it carries over product, qty, price and customer). Lines `{pid,qty,price}` with stepper, price and remove; add from a select or by barcode scan; order discount; received amount; payment method; customer; due date.
+  - Save writes one `s` record per line (snapshot as before) sharing optional `o` (order id; only when 2+ lines). The order discount is split proportionally (last line takes the rounding rest). The received amount fills lines in order (`paid`).
+  - The unpaid rest makes **one** debt with optional `oid`; `did` is set on the lines that are not fully paid.
+  - `ordL(s)` returns the order's lines. Invoice: `invNo` gives all lines one number; `invInfo`, `invText` and `invImage` list every line (image +76 px per extra line, sums for subtotal and discount).
+  - `returnSale` is wrapped for order lines: restores stock, lowers the shared debt by that line's unpaid part (deletes the debt if it reaches 0 and has no payments), and moves `d.sid` to a remaining line.
+  - Money math is unchanged: each line goes through `sRev`/`prof`, `AGG` sums lines, and the debt is never profit.
+- **Off-device backup:** `saveFile` is wrapped so backup files (`koptan-backup-*`) go to the share sheet (Drive, WhatsApp, Files) when the browser can share files (native already shared). Home shows an orange card “احفظ نسخة من بياناتك خارج الهاتف” when there is data and no backup for 7 days (`bkDue`). Settings row renamed “حفظ نسخة خارج الهاتف”.
+- **Customer page:** “كشف حساب” (`cusStmt`: last 25 purchases, total, open debts, balance) and “تذكير بالدين” (`cusRem`, only if the customer owes) as WhatsApp links (the customer's number if valid, otherwise wa.me share).
+- **Cash box** (`cashBox(a)`, `ACT.cashBox`, button in the daily summary sheet): sales received per method (`paid`, or `sRev` for old sales), debt payments in/out (counted as cash), cash vs other expenses, expected cash in the drawer, real count input → match / extra / missing, share text.
+- **Reports:** `SUBS.rep.f` wrapped with `repMore()`: profit by category, top 5 customers, sales by weekday with the strongest day.
+- **Variants:** “إضافة نوع (مقاس / لون)” in the product “more” sheet (`varPage`). It creates a separate product `"<base> — <label>"` that copies cost, supplier and photos (image ids are shared: `gcImgs` only deletes unreferenced ids), with its own qty and price. Optional fields `vg` (group = first product id), `vb` (base name), `vl` (label); the barcode is not copied. The product page shows variant chips (`varHTML`).
+- **Settings order:** store card, then Data & backup, Security & privacy, Invoice, Currency & selling, Notifications, Language, Look & vibration, About.
+- New optional fields: `s.o`, `d.oid`, `p.vg/vb/vl`. No schema change; old data and backups unaffected.
+- Verified: new feature tests F26–F31 (cart math 5+16−1=20, paid split, one debt of 3, stock, one invoice number, taller 2-line invoice, return one line removes the debt; statement/reminder links; cash-box formula and difference; variant creation and chips; report sections; home backup card shown/hidden and settings order). `tests/run.sh shots`: e2e 42/42, features 31/31, self-update, web auto-update, SW upgrade, no overflow. One earlier full run had the feature suite time out at its very first page load (before any step); the suite alone passed 31/31 and the next full run passed (startup timing flake). Screenshots of cart (after fixing an overlap of qty and price at 360 px), settings, home card and cash box reviewed.
+
 ---
 
 ## 8. Known issues / pending
@@ -258,6 +275,8 @@ Rules:
 - Back button needs APK build 10+ (has `@capacitor/app`); older APKs keep closing on Back. Not yet confirmed on a real phone.
 - The APK launcher name/icon change to KOPT X only with a new APK build; the web layer (header, invoice, icons inside the app) arrives by self-update.
 - `tests/sw-upgrade.js` offline reopen can time out occasionally (seen once in 9.5.0); rerun before investigating.
+- Cart, cash box, statement and variants (9.7.0) are verified in Chromium only, not on a real phone yet. Sharing the backup file to Drive/WhatsApp depends on the browser supporting file sharing (Android Chrome yes; desktop falls back to download).
+- Test start can time out occasionally (features suite first `ready`, SW-upgrade offline reopen); rerun before investigating.
 - Pending ideas: delta updates; iOS self-update; ML Kit barcode plugin if WebView lacks BarcodeDetector.
 
 ---
