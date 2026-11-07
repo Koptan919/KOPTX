@@ -280,6 +280,7 @@ All new code is at the end of `extra.js` (section “v9.7”). Small hooks are i
 
 ### 2026-11-07: docs/BUILD-GUIDE.md
 - The owner asked for a file explaining how the app and its auto-update were built, to teach Claude Code. Added `docs/BUILD-GUIDE.md` (Arabic). It covers: architecture and file roles, data rules, i18n, both update paths (Service Worker + `version.json` + reload; Capgo manual mode download → next → set, `notifyAppReady` rollback, `whenIdle`), `publish-web.sh`, the four version bumps, permanent APK signing, real build problems and fixes, tests, the release checklist and a ready prompt for building a similar app. Written from the current code (9.9.1). Docs only; no app change, no deploy.
+- Also added `docs/THEME.md`, a guide to the Titanium × Burgundy Liquid Glass theme for Claude: exact `:root` tokens, ambient background, static vs floating glass, `.lite`, components (btn, fab, th colours, switch, seg, sheet, toast, metal logo), font/icons, 10 rules and a ready prompt. Values copied from `app.css`.
 
 ---
 
