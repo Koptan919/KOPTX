@@ -300,6 +300,7 @@ All new code is at the end of `extra.js` (section “v9.7”). Small hooks are i
 - `tests/sw-upgrade.js` offline reopen can time out occasionally (seen once in 9.5.0); rerun before investigating.
 - Cart, cash box, statement and variants (9.7.0) are verified in Chromium only, not on a real phone yet. Sharing the backup file to Drive/WhatsApp depends on the browser supporting file sharing (Android Chrome yes; desktop falls back to download).
 - Test start can time out occasionally (features suite first `ready`, SW-upgrade offline reopen); rerun before investigating.
+- **Repository renamed to `Koptan919/KOPTX` by the owner (2026-11-07).** *Verify live site* run 42380013390 failed: the app no longer loads at `koptan919.github.io/Koptan/` (Pages URLs don't redirect after a rename). Installed APKs check `…/Koptan/version.json` (`UPD_URL`), so they get no updates while this lasts. Recommended fix: rename the repo back to `Koptan`. The alternative (switch every URL to `/KOPTX/`: UPD_URL, publish-web.sh, verify-pages.yml, tests/upd.js) needs one new APK install. Waiting for the owner's choice. This session's GitHub scope is the old name; `gh api` calls through the rename redirect are blocked, but MCP tools with `Koptan` still work.
 - Pending ideas: delta updates; iOS self-update; ML Kit barcode plugin if WebView lacks BarcodeDetector.
 
 ---
