@@ -115,8 +115,14 @@ await p.locator('.sheet [data-vl]').fill('Red');await p.locator('.sheet [data-vq
 const v=await ev(()=>{const a=S.p.find(p=>p.id==='cA'),v=S.p.find(p=>p.vl==='Red');return v&&{name:v.name,qty:v.qty,g:v.vg===a.vg&&a.vg==='cA',cost:v.cost,sold:v.sold}});ok(v&&v.name==='Cart A — Red'&&v.qty===4&&v.g&&v.cost===2&&v.sold===0,JSON.stringify(v));
 ok(await top().locator('.chp [data-act=pd]').count()===2,'variants chips on the page');await clr()});
 await step('F30 reports: category, best customers, weekdays',async()=>{await clr();await ev(()=>{per='all';openSub('rep')});await W(700);const t=await top().innerText();ok(t.includes('الأرباح حسب التصنيف')&&t.includes('أفضل الزبائن')&&t.includes('أيام الأسبوع'),'sections');await clr()});
-await step('F31 home backup card + settings order',async()=>{await clr();await ev(async()=>{S.k.lastBk=0;await saveK();go('home')});await W(400);ok(await p.locator('#v .alert.o[data-act=bk]').count()===1,'card shown');
-await ev(async()=>{S.k.lastBk=Date.now();await saveK();refresh()});await W(300);ok(await p.locator('#v .alert.o[data-act=bk]').count()===0,'hidden after a backup');
+await step('F31 home backup card + settings order',async()=>{await clr();await ev(async()=>{S.k.lastBk=0;await saveK();go('home')});await W(400);ok(await p.locator('#v .alert.o[data-act=bkOpen]').count()===1,'card shown');
+await ev(async()=>{S.k.lastBk=Date.now();await saveK();refresh()});await W(300);ok(await p.locator('#v .alert.o[data-act=bkOpen]').count()===0,'hidden after a backup');
 await ev(()=>openSub('set'));await W(500);const hs=await top().locator('h3.sh3').allInnerTexts();ok(hs[0].includes('البيانات')&&hs[1].includes('الأمان')&&hs.length===8,hs.join(' | '));await clr()});
+await step('F32 backup page: 4 methods, save on phone downloads the file, in-app copy, auto backup, opened from home card and settings',async()=>{await clr();await ev(async()=>{S.k.lastBk=0;await saveK();go('home')});await W(300);await p.locator('#v .alert.o[data-act=bkOpen]').click();await W(600);
+ok(await p.locator('.pg[data-sub=bk]').count()===1,'opens from home');const pg=top();ok(await pg.locator('.bkw').count()===4,'4 methods');
+const [d]=await Promise.all([p.waitForEvent('download',{timeout:15000}),pg.locator('[data-act=bkGo][data-id=file]').click()]);ok(/^koptan-backup-.*\.json$/.test(d.suggestedFilename()),d.suggestedFilename());await W(800);ok(await ev(()=>S.k.lastBk>0&&BKM===''),'last backup saved, mode reset');
+const n0=await ev(()=>S.k.snapN||0);await pg.locator('[data-act=bkGo][data-id=app]').click();await W(700);ok(await ev(()=>S.k.snapN||0)===n0+1,'in-app copy');
+await pg.locator('[data-abk=d]').click();await W(300);ok(await ev(()=>S.k.abk)==='d','auto daily');await top().locator('[data-abk=w]').click();await W(200);
+ok(await top().locator('[data-act=restore]').count()===1,'restore button');await clr();await ev(()=>openSub('set'));await W(500);ok(await top().locator('[data-act=bkOpen]').count()===1,'settings row');await clr()});
 await step('F24 no JS errors in the later steps',async()=>{ok(errs.length===0,errs.join(' | '))});
 console.log(R.join('\n'));console.log('PASSED',R.filter(x=>x.startsWith('PASS')).length,'/',R.length);await b.close()})();

@@ -177,6 +177,7 @@ document.addEventListener('click',async e=>{const b=e.target.closest&&e.target.c
 /* =================== what's new: one notification per installed update =================== */
 /* newest first; add an entry with every release (Arabic source, EN in i18n.js) */
 const CHANGES=[
+{v:'9.8.0',d:'2026-11-07',n:['قسم مستقل للنسخ الاحتياطي: اختر Google Drive أو واتساب أو الهاتف أو داخل التطبيق','الاستعادة والنسخ التلقائي في نفس المكان']},
 {v:'9.7.0',d:'2026-11-07',n:['بيع عدة منتجات في فاتورة واحدة (سلة)','حفظ نسخة خارج الهاتف إلى Google Drive أو واتساب، مع تذكير في الرئيسية','كشف حساب للزبون وتذكير بالدين عبر واتساب','صندوق اليوم: النقد المتوقع في الدرج ومقارنته بالفعلي','تقارير جديدة: الأرباح حسب التصنيف، أفضل الزبائن، أيام الأسبوع','أنواع للمنتج: مقاسات وألوان بمخزون مستقل','إعدادات مرتبة أوضح']},
 {v:'9.6.0',d:'2026-11-06',n:['الاسم والأيقونة لطريقة الفتح حسب هاتفك: الوجه أو البصمة']},
 {v:'9.5.0',d:'2026-11-06',n:['هوية جديدة: الاسم KOPT X وأيقونة جديدة']},
@@ -271,7 +272,7 @@ S.s=S.s.filter(x=>x.id!==s.id);await del('s',s.id);log('مرتجع: '+s.name+' �
 /* ---------- off-device backup: the backup file goes to the share sheet (Drive, WhatsApp, Files) when the browser can share files ---------- */
 const _saveFile0=saveFile;saveFile=async function(name,data,type){if(!NAT()&&/^koptan-backup-/.test(name)&&navigator.canShare&&navigator.share){try{const f=new File([data instanceof Blob?data:new Blob([data],{type})],name,{type});if(navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});return true}}catch(e){if(e&&e.name==='AbortError')return false}}return _saveFile0(name,data,type)};
 const bkDue=()=>S.p.length+S.s.length+S.d.length+S.e.length>0&&Date.now()-(S.k.lastBk||0)>7*864e5;
-const _vHome0=vHome;vHome=function(){const h=_vHome0();if(!bkDue())return h;const c=`<button class="alert o" data-act="bk">${SV(LU.share)}<span>${L('احفظ نسخة من بياناتك خارج الهاتف')}<small>${S.k.lastBk?L('آخر نسخة: {d}',{d:day(S.k.lastBk)}):L('لم تؤخذ أي نسخة بعد')} · ${L('Google Drive أو واتساب')}</small></span>${SV(FWD(),'ch')}</button>`;const i=h.indexOf('<button class="alert mu" data-act="daySum"');return i<0?h:h.slice(0,i)+c+h.slice(i)};
+const _vHome0=vHome;vHome=function(){const h=_vHome0();if(!bkDue())return h;const c=`<button class="alert o" data-act="bkOpen">${SV(LU.share)}<span>${L('احفظ نسخة من بياناتك خارج الهاتف')}<small>${S.k.lastBk?L('آخر نسخة: {d}',{d:day(S.k.lastBk)}):L('لم تؤخذ أي نسخة بعد')} · ${L('Google Drive أو واتساب')}</small></span>${SV(FWD(),'ch')}</button>`;const i=h.indexOf('<button class="alert mu" data-act="daySum"');return i<0?h:h.slice(0,i)+c+h.slice(i)};
 
 /* ---------- customer statement and debt reminder over WhatsApp ---------- */
 function cusStmt(c){const ls=c.ss.slice(0,25).map(s=>`• ${day(s.date)} — ${s.name} × ${s.qty} = ${plain(sRev(s))}`),od=c.ds.filter(d=>d.type==='in'&&!d.arch&&dRem(d)>0.005);
@@ -314,3 +315,17 @@ S.p.push(v);await put('p',v);log('إضافة منتج: '+nm);closeEl(b);ok(L('ت
 ACT.addVar=id=>varPage(id);
 function varHTML(p){if(!p.vg)return'';const sib=S.p.filter(x=>x.vg===p.vg&&!x.arch);return`<section class="sec"><h3>${SV(LU.grid)}${L('الأنواع')} (${sib.length})</h3><div class="chp">${sib.map(x=>`<button type="button" class="${x.id===p.id?'on':''}" data-act="pd" data-id="${x.id}">${esc(x.vl||L('الأساسي'))} · ${x.qty}</button>`).join('')}<button type="button" data-act="addVar" data-id="${p.id}">＋ ${L('نوع')}</button></div></section>`}
 const _pmore0=ACT.pmore;ACT.pmore=id=>{_pmore0(id);const o=$$('.sheet .opts').pop();if(!o)return;const b=document.createElement('button');b.className='opt';b.dataset.var='1';b.innerHTML=SV(LU.plus)+esc(L('إضافة نوع (مقاس / لون)'));b.onclick=e=>{e.stopPropagation();closeEl(o.closest('.sheet-bg'));setTimeout(()=>varPage(id),160)};o.insertBefore(b,o.children[1]||null)};
+
+/* =================== v9.8: backup page — the user picks where the backup goes =================== */
+let BKM='';/* '' | 'drive' | 'wa' | 'file' — read by saveFile for backup files */
+const _saveFile1=saveFile;saveFile=async function(name,data,type){if(BKM==='file'&&/^koptan-backup-/.test(name)){if(hasPl('Filesystem')){try{const blob=data instanceof Blob?data:new Blob([data],{type}),b64=(await b2d(blob)).split(',')[1];await capCall('Filesystem','writeFile',{path:'KOPTX/'+name,data:b64,directory:'DOCUMENTS',recursive:true});ok(L('تم الحفظ في مجلد Documents/KOPTX'));return true}catch(e){console.warn('bk file',e)}}return _saveFile0(name,data,type)}return _saveFile1(name,data,type)};
+const BKW=[['drive',LU.db,'g','Google Drive','ستظهر قائمة المشاركة — اختر «Drive» واحفظ الملف هناك'],['wa',null,'g','واتساب','أرسل الملف لنفسك أو لرقم تثق به، ويبقى محفوظًا في المحادثة'],['file',LU.dl,'tn','حفظ على الهاتف','ملف في مجلد Documents/KOPTX — لا يحميك إذا ضاع الهاتف'],['app',LU.repl,'o','نسخة سريعة داخل التطبيق','بدون صور، للتراجع عن خطأ — لا تحميك إذا حُذف التطبيق']];
+ACT.bkGo=async m=>{if(m==='app')return ACT.snapNow();if(m==='drive'||m==='wa')toast(L(m==='drive'?'اختر «Drive» من قائمة المشاركة':'اختر «واتساب» من قائمة المشاركة'));BKM=m;try{await exportJ()}finally{BKM='';refreshPages()}};
+ACT.bkOpen=()=>openSub('bk');
+SUBS.bk={t:'النسخ الاحتياطي',f(){const old=bkOld(),n=S.p.length+S.s.length+S.e.length+S.d.length;
+return`<div class="card bkst ${old?'o':'g'}"><span class="th ${old?'o':'g'} lg">${SV(old?LU.warn:LU.cok)}</span><div><b>${S.k.lastBk?L('آخر نسخة: {d}',{d:dtm(S.k.lastBk)}):L('لم تؤخذ أي نسخة بعد')}</b><small>${old?L('خذ نسخة الآن لتحمي بياناتك'):L('بياناتك محمية')} · ${plural(n,'{n} سجل','{n} سجلات')}</small></div></div>
+<h3 class="sh3">${L('اختر طريقة النسخ')}</h3><div class="list">${BKW.map(([k,ic,c,t,s])=>`<button class="row bkw" data-act="bkGo" data-id="${k}"><span class="th ${c}">${ic?SV(ic):WA_SVG}</span><span class="t"><b>${k==='drive'?t:L(t)}</b><small>${L(s)}</small></span>${SV(FWD(),'ch')}</button>`).join('')}</div>
+<p class="sub">${L('النسخة تشمل كل البيانات والصور، ولا تشمل رمز القفل أو البصمة. احفظها في مكان خارج الهاتف مثل Drive أو واتساب.')}</p>
+<h3 class="sh3">${L('النسخ التلقائي')}</h3><section class="grp">${SSG(LU.repl,'o',L('النسخ الاحتياطي التلقائي'),L('نسخة داخل التطبيق + تذكير بحفظ نسخة خارج الهاتف'),[['off','إيقاف'],['d','يوميًا'],['w','أسبوعيًا']].map(([k,l])=>`<button class="${(S.k.abk||'w')===k?'on':''}" data-abk="${k}">${L(l)}</button>`).join(''))}${SWI('nfBk',LU.bell,'tn',L('تذكير النسخ الاحتياطي'),L('إذا مرّ أسبوع بلا نسخة'),S.k.nfBk!==false)}</section>
+<h3 class="sh3">${L('الاستعادة')}</h3><div class="bar"><button class="btn" data-act="restore">${SV(LU.ul)}${L('استعادة من ملف')}</button></div>${snapsHTML()}`},
+b(el){el.addEventListener('click',async e=>{const b=e.target.closest('[data-sw]');if(!b)return;const k=b.dataset.sw;S.k[k]=S.k[k]===false;await saveK();buzz(6);refresh()})}};

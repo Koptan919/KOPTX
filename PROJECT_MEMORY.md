@@ -1,7 +1,7 @@
 # KOPT X (formerly KOPTAN) · مدير أعمالي — Project memory
 
 > Detailed, persistent context for future development sessions. The concise rules are in [CLAUDE.md](CLAUDE.md).
-> Last updated: 2026-11-06 · App version **9.7.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
+> Last updated: 2026-11-06 · App version **9.8.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
 
 ---
 
@@ -257,6 +257,12 @@ All new code is at the end of `extra.js` (section “v9.7”). Small hooks are i
 - **Settings order:** store card, then Data & backup, Security & privacy, Invoice, Currency & selling, Notifications, Language, Look & vibration, About.
 - New optional fields: `s.o`, `d.oid`, `p.vg/vb/vl`. No schema change; old data and backups unaffected.
 - Verified: new feature tests F26–F31 (cart math 5+16−1=20, paid split, one debt of 3, stock, one invoice number, taller 2-line invoice, return one line removes the debt; statement/reminder links; cash-box formula and difference; variant creation and chips; report sections; home backup card shown/hidden and settings order). `tests/run.sh shots`: e2e 42/42, features 31/31, self-update, web auto-update, SW upgrade, no overflow. One earlier full run had the feature suite time out at its very first page load (before any step); the suite alone passed 31/31 and the next full run passed (startup timing flake). Screenshots of cart (after fixing an overlap of qty and price at 360 px), settings, home card and cash box reviewed. Deployed 9.7.0; *Verify live site* run 42358931216 all PASS (bundle 231 KB). Web-layer only, no APK rebuild needed.
+
+### 2026-11-07: v9.8.0 separate Backup page with a choice of method
+- The owner wanted backup as its own section where you pick the method. New `SUBS.bk` (“النسخ الاحتياطي”, end of extra.js). It is opened from the home card (`data-act="bkOpen"`), Settings › Data & backup (one row replaces the old backup row and auto-backup switch) and the More menu (badge when a backup is overdue).
+- The page has: a status card (last backup time or warning, record count); 4 methods (`ACT.bkGo`): Google Drive and WhatsApp (share sheet with a toast telling which app to pick; an app can't be preselected), save on the phone, quick in-app copy (`ACT.snapNow`); automatic backup frequency and reminder switch; restore from file; in-app snapshots list.
+- “Save on the phone” uses `BKM='file'` read by a second `saveFile` wrapper. Natively it writes `Documents/KOPTX/<file>` with Filesystem (`DOCUMENTS`, recursive) and falls back to the original saveFile; on the web it downloads. `BKM` is reset after every run.
+- Verified: new F32 (home card opens the page, 4 methods, the file method downloads `koptan-backup-*.json` and sets lastBk, the in-app copy increments `snapN`, auto-backup switch, restore button, settings row); F31 updated for `bkOpen`. Screenshots (AR/EN, 360 px) reviewed after letting the method descriptions wrap. Native Documents write not verified on a real phone.
 
 ---
 

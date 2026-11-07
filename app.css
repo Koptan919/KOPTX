@@ -341,3 +341,6 @@ button,a,.row,.pc,[role=button],summary,.chips button,.seg button,.pk{touch-acti
 .crow .stp{min-width:0;gap:6px}.crow .stp button{width:44px;min-height:44px}.crow .inl{min-height:44px;padding:6px 8px;text-align:center;font-weight:700;min-width:0}.crow .stp .inl{flex:1 1 0;width:0;font-size:18px}.crow .cpr .inl{width:100%}.crow .cx{width:40px;height:40px;justify-self:end}.cpr{display:flex;flex-direction:column;gap:2px;width:112px}.cpr small{color:var(--mu);font-size:11.5px}.cmt{padding:4px 0 10px}
 .tocart{margin:-4px 0 12px}
 .alert.o{color:var(--or);background:linear-gradient(150deg,rgba(243,171,85,.16),rgba(243,171,85,.05));border-color:rgba(243,171,85,.32)}.alert span small{display:block;font-weight:500;font-size:12px;color:var(--mu);margin-top:2px}
+
+/* v9.8 backup page */
+.bkst{display:flex;align-items:center;gap:12px;padding:14px;margin-bottom:6px}.bkst b{display:block;font-size:15px}.bkst small{color:var(--mu);font-size:12.5px}.bkst.o{border-color:rgba(243,171,85,.35)}.bkw .th svg{width:22px;height:22px}.bkw .t small{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.45}.bkw+.bkw{margin-top:0}.list+.sub{margin-top:10px}
