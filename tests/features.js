@@ -124,5 +124,13 @@ const [d]=await Promise.all([p.waitForEvent('download',{timeout:15000}),pg.locat
 const n0=await ev(()=>S.k.snapN||0);await pg.locator('[data-act=bkGo][data-id=app]').click();await W(700);ok(await ev(()=>S.k.snapN||0)===n0+1,'in-app copy');
 await pg.locator('[data-abk=d]').click();await W(300);ok(await ev(()=>S.k.abk)==='d','auto daily');await top().locator('[data-abk=w]').click();await W(200);
 ok(await top().locator('[data-act=restore]').count()===1,'restore button');await clr();await ev(()=>openSub('set:data'));await W(500);ok(await top().locator('[data-act=bkOpen]').count()===1,'settings row');await clr()});
+await step('F33 biometrics unavailable: reason shown, re-check turns the switch on',async()=>{const c6=await b.newContext();const q=await c6.newPage();const qe=[];q.on('pageerror',e=>qe.push(e.message));
+await q.addInitScript(()=>{window.__av={isAvailable:false,errorCode:3,biometryType:3};window.Capacitor={isNativePlatform:()=>true,Plugins:{NativeBiometric:{isAvailable:async()=>window.__av,verifyIdentity:async()=>{}}}}});
+await q.goto(URL);await q.waitForSelector('body.ready');await q.evaluate(async()=>{S.k.pin=await sha('pbm2468');await saveK();openSub('set:sec')});await q.waitForTimeout(700);
+const t=await q.locator('.pg').last().innerText();ok(t.includes('لا توجد بصمة مسجّلة'),'reason shown');ok(await q.locator('[data-act=bioSet]').count()===0&&await q.locator('[data-act=bioRe]').count()===1,'re-check button');
+await q.evaluate(()=>{window.__av={isAvailable:true,biometryType:3}});await q.locator('[data-act=bioRe]').click();await q.waitForTimeout(600);ok(await q.locator('[data-act=bioSet]').count()===1,'switch after re-check');
+await q.evaluate(()=>{window.__av={isAvailable:false,errorCode:1,biometryType:4};BIO=null;refreshPages()});await q.waitForTimeout(600);ok((await q.locator('.pg').last().innerText()).includes('لا يسمح للتطبيقات'),'hardware reason');
+const c7=await b.newContext();const r=await c7.newPage();await r.addInitScript(()=>{window.Capacitor={isNativePlatform:()=>true,Plugins:{}};window.PublicKeyCredential=undefined});await r.goto(URL);await r.waitForSelector('body.ready');await r.evaluate(()=>openSub('set:sec'));await r.waitForTimeout(700);ok((await r.locator('.pg').last().innerText()).includes('KOPTX.apk'),'old APK reason');await c7.close();
+ok(qe.length===0,qe.join(' | '));await c6.close()});
 await step('F24 no JS errors in the later steps',async()=>{ok(errs.length===0,errs.join(' | '))});
 console.log(R.join('\n'));console.log('PASSED',R.filter(x=>x.startsWith('PASS')).length,'/',R.length);await b.close()})();

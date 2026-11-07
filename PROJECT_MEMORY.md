@@ -1,7 +1,7 @@
 # KOPT X (formerly KOPTAN) · مدير أعمالي — Project memory
 
 > Detailed, persistent context for future development sessions. The concise rules are in [CLAUDE.md](CLAUDE.md).
-> Last updated: 2026-11-06 · App version **9.9.0** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
+> Last updated: 2026-11-06 · App version **9.9.1** · Owner: Koptan919 (Arabic-speaking; replies to the owner in Arabic).
 
 ---
 
@@ -271,6 +271,12 @@ All new code is at the end of `extra.js` (section “v9.7”). Small hooks are i
 - **More menu** (`vMore`): three headed groups. Selling & tracking: reports, customers, expenses, suppliers, reorder. Organising: notifications, tasks, calendar. Data & settings: backup, data center, settings.
 - Tests updated to open the right category (`openSub('set:<k>')`): e2e O1/R1, features F2/F11/F14/F20/F21/F25/F31/F32, upd.js. F31 now checks the 7 categories and that each page has content.
 - Verified: full `tests/run.sh shots` gave e2e 42/42, self-update, web auto-update, SW upgrade, no overflow, features 31/32. F2 failed because its rate step re-opened `set:cur` while that page was still open under `set:nf` (`openSub` ignores an already-open page). The test now closes settings sub-pages first; the feature suite then passed 32/32. Screenshots (AR/EN, 360 px) of the settings list, a category page and the grouped More menu reviewed. Deployed 9.9.0; *Verify live site* run 42361297278 all PASS.
+
+### 2026-11-07: v9.9.1 biometric row explains why it is unavailable
+- The owner's phone (Android, looks like Realme/Oppo, running the APK) showed no biometric row in Security, and no button on the lock screen. Cause: `bioAvail()` returned '' and `bioRow()` hid the row silently. Also, `bio`/`bioId` are left out of backups on purpose, so a reinstall + restore turns the option off.
+- Checked `@capgo/capacitor-native-biometric@6.0.4` (Android): `isAvailable` uses the deprecated `BiometricManager.canAuthenticate()` (= BIOMETRIC_WEAK) and returns `errorCode` (1 hardware unavailable or not present, 3 none enrolled, 0 other). `biometryType` only reflects PackageManager features. Weak face unlock is allowed if the OEM exposes it to BiometricPrompt; many (Oppo/Realme/Xiaomi) don't.
+- Now `BIOE` keeps the reason (`none | hw | oldapk | web | unk`). The row stays visible with the reason and a “فحص مجددًا” button (`ACT.bioRe`). Biometrics are re-checked automatically when the app becomes visible again (after enrolling a fingerprint in the phone's settings).
+- Test F33 (native mock: not enrolled → reason + re-check → switch; hardware reason; old APK without the plugin → KOPTX.apk hint).
 
 ---
 
