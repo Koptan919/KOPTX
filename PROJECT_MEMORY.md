@@ -270,6 +270,7 @@ All new code is at the end of `extra.js` (section “v9.7”). Small hooks are i
   - Each category row shows a live summary (`setSum`: last backup, lock/biometric, next invoice number, currency + rate, notifications on, language + vibration, version).
 - **More menu** (`vMore`): three headed groups. Selling & tracking: reports, customers, expenses, suppliers, reorder. Organising: notifications, tasks, calendar. Data & settings: backup, data center, settings.
 - Tests updated to open the right category (`openSub('set:<k>')`): e2e O1/R1, features F2/F11/F14/F20/F21/F25/F31/F32, upd.js. F31 now checks the 7 categories and that each page has content.
+- Verified: full `tests/run.sh shots` gave e2e 42/42, self-update, web auto-update, SW upgrade, no overflow, features 31/32. F2 failed because its rate step re-opened `set:cur` while that page was still open under `set:nf` (`openSub` ignores an already-open page). The test now closes settings sub-pages first; the feature suite then passed 32/32. Screenshots (AR/EN, 360 px) of the settings list, a category page and the grouped More menu reviewed.
 
 ---
 
