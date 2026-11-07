@@ -1,7 +1,7 @@
 /* KOPTAN · مدير أعمالي — v9 Titanium Liquid Glass
    core: i18n, state, storage (IndexedDB "pbm" v5 — unchanged schema, fully compatible), formatting, UI primitives, images, files. */
 'use strict';
-const APP_VER='9.3.0';
+const APP_VER='9.9.2';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -76,6 +76,7 @@ merge:'<path d="m8 6 4-4 4 4"/><path d="M12 2v10.3a4 4 0 0 1-1.172 2.872L4 22"/>
 share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>',
 clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
 scan:'<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8v8"/><path d="M11 8v8"/><path d="M15 8v8"/><path d="M18 8v8"/>',
+face:'<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01"/><path d="M15 9h.01"/>',
 finger:'<path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/><path d="M14 13.12c0 2.38 0 6.38-1 8.88"/><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/><path d="M2 12a10 10 0 0 1 18-6"/><path d="M2 16h.01"/><path d="M21.8 16c.2-2 .131-5.354 0-6"/><path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/><path d="M8.65 22c.21-.66.45-1.32.57-2"/><path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>',
 target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
 bksp:'<path d="M10 5a2 2 0 0 0-1.344.519l-6.328 5.74a1 1 0 0 0 0 1.481l6.328 5.741A2 2 0 0 0 10 19h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/><path d="m12 9 6 6"/><path d="m18 9-6 6"/>'
@@ -166,11 +167,15 @@ const ok=m=>toast(m,'ok'),warn=m=>toast(m,'w');
 function toastP(m){const t=document.createElement('div');t.className='toast gl ld';t.innerHTML='<i class="spin"></i><span></span>';t.lastChild.textContent=m;document.body.append(t);return()=>t.remove()}
 
 /* ---------- Android back button: closes the top overlay instead of leaving the app ---------- */
-const OVS='.sheet-bg,.pg,.zm';let hst=0,hig=0,hsy;
+const OVS='.sheet-bg,.pg,.zm';let hst=0,hig=0,hsy,hg=0;
 const hpush=()=>{try{history.pushState({o:1},'');hst++}catch(e){}};
-const hsync=()=>{clearTimeout(hsy);hsy=setTimeout(()=>{const n=$$(OVS).length;while(hst<n){const b=hst;hpush();if(hst===b)break}if(hst>n){const k=hst-n;hst=n;hig=1;try{history.go(-k)}catch(e){hig=0}}},40)};
+/* one guard entry under the overlay entries: Back on a main tab goes to the previous tab (backRoot in more.js) instead of leaving */
+const hguard=()=>{if(hg||hst)return;try{history.pushState({g:1},'');hg=1}catch(e){}};addEventListener('pointerdown',hguard,true);addEventListener('keydown',hguard,true);
+const hsync=()=>{clearTimeout(hsy);hsy=setTimeout(()=>{const n=$$(OVS).length;while(hst<n){hguard();const b=hst;hpush();if(hst===b)break}if(hst>n){const k=hst-n;hst=n;hig=1;try{history.go(-k)}catch(e){hig=0}}},40)};
 new MutationObserver(ms=>{if(ms.some(m=>[...m.addedNodes,...m.removedNodes].some(n=>n.nodeType===1&&n.matches&&n.matches(OVS))))hsync()}).observe(document.body,{childList:true});
-addEventListener('popstate',()=>{if(hig>0){hig=0;return}const t=$$(OVS).pop();if(!t){hst=0;return}hst=Math.max(0,hst-1);if(t._back){hpush();t._back();return}closeEl(t)});
+addEventListener('popstate',()=>{if(hig>0){hig=0;return}const t=$$(OVS).pop();if(!t){hst=0;hg=0;if(typeof backRoot==='function')backRoot(false);return}hst=Math.max(0,hst-1);if(t._back){hpush();t._back();return}closeEl(t)});
+/* native back (APK, @capacitor/app): same order: top overlay first, then the previous tab, then a double press exits */
+function backTop(){const t=$$(OVS).pop();if(!t)return false;if(t._back)t._back();else closeEl(t);return true}
 function closeEl(el){if(!el||!el.isConnected)return;if(el.classList.contains('sheet-bg')){el.classList.add('out');const s=el.firstChild;s.style.transition='transform .2s';s.style.transform='translateY(100%)';setTimeout(()=>el.remove(),190)}else if(el.classList.contains('pg')){el.classList.add('out');setTimeout(()=>el.remove(),170)}else el.remove()}
 
 /* ---------- sheets (glass bottom sheets) ---------- */

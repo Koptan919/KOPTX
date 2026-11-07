@@ -23,8 +23,8 @@ jobs:
           VER=$(sed -n "s/^const APP_VER='\([0-9.]*\)'.*/\1/p" core.js); echo "VER=$VER" >> "$GITHUB_ENV"
           cd app
           npm init -y
-          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/camera@6 @capacitor/filesystem@6 @capacitor/share@6 @capacitor/local-notifications@6.1.3 @capacitor/haptics@6.0.3 @capgo/capacitor-updater@6.25.6 @capgo/capacitor-native-biometric@6.0.4
-          npx cap init KOPTAN com.koptan.app --web-dir www
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/camera@6 @capacitor/filesystem@6 @capacitor/share@6 @capacitor/local-notifications@6.1.3 @capacitor/haptics@6.0.3 @capacitor/app@6.0.3 @capgo/capacitor-updater@6.25.6 @capgo/capacitor-native-biometric@6.0.4
+          npx cap init "KOPT X" com.koptan.app --web-dir www
           # self-update in manual mode: the app checks version.json on the live site; no third-party update server or stats
           node -e "const f='capacitor.config.json',c=require('./'+f);c.backgroundColor='#0b0c0f';c.android={backgroundColor:'#0b0c0f'};c.plugins={CapacitorUpdater:{autoUpdate:false,statsUrl:'',appReadyTimeout:15000,resetWhenUpdate:true}};require('fs').writeFileSync(f,JSON.stringify(c,null,2))"
           npx cap add android
@@ -36,7 +36,7 @@ jobs:
           sed -i 's/minSdkVersion = 22/minSdkVersion = 23/' android/variables.gradle
           grep -q 'minSdkVersion = 23' android/variables.gradle
           printf '\nallprojects {\n    configurations.all {\n        resolutionStrategy.force "androidx.work:work-runtime:2.9.1"\n    }\n}\n' >> android/build.gradle
-          # launcher icon: Titanium x Burgundy
+          # launcher icon: KOPT X
           RES=android/app/src/main/res
           rm -rf $RES/mipmap-anydpi-v26
           for d in $RES/mipmap-*; do cp www/icon-192.png $d/ic_launcher.png; cp www/icon-192.png $d/ic_launcher_round.png; cp www/icon-192.png $d/ic_launcher_foreground.png; done
@@ -58,28 +58,28 @@ jobs:
               -Pandroid.injected.signing.key.alias=koptan \
               -Pandroid.injected.signing.key.password="$KS_PASS"
             rm -f "$K"
-            cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/KOPTAN.apk"
+            cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/KOPTX.apk"
             # the APK must carry exactly the committed certificate
             AS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)/apksigner
-            GOT=$("$AS" verify --print-certs "$GITHUB_WORKSPACE/KOPTAN.apk" | sed -n 's/.*certificate SHA-256 digest: *//p' | head -1 | tr -d ':' | tr 'A-F' 'a-f')
+            GOT=$("$AS" verify --print-certs "$GITHUB_WORKSPACE/KOPTX.apk" | sed -n 's/.*certificate SHA-256 digest: *//p' | head -1 | tr -d ':' | tr 'A-F' 'a-f')
             WANT=$(tr -d ': \n' < "$GITHUB_WORKSPACE/signing/fingerprint-sha256.txt" | tr 'A-F' 'a-f')
             echo "APK certificate SHA-256: $GOT"
             if [ -z "$GOT" ] || [ "$GOT" != "$WANT" ]; then echo "::error::APK signature does not match signing/fingerprint-sha256.txt"; exit 1; fi
-            echo "SIGNING=release, permanent KOPTAN key (installs as an update over earlier release-signed builds)" >> "$GITHUB_ENV"
+            echo "SIGNING=release, permanent KOPT X key (installs as an update over earlier release-signed builds)" >> "$GITHUB_ENV"
           else
             ./gradlew assembleDebug
-            cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/KOPTAN.apk"
+            cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/KOPTX.apk"
             echo "SIGNING=debug (temporary key — run 'Create signing key' once to get updatable builds)" >> "$GITHUB_ENV"
           fi
       - uses: actions/upload-artifact@v4
         with:
-          name: KOPTAN-apk
-          path: KOPTAN.apk
+          name: KOPTX-apk
+          path: KOPTX.apk
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="v$VER-build-${{ github.run_number }}"
-          gh release create "$TAG" KOPTAN.apk --repo "${{ github.repository }}" --target "${{ github.sha }}" \
-            --title "KOPTAN $VER (build ${{ github.run_number }})" \
-            --notes "Titanium Liquid Glass edition, with automatic in-app updates. APK file: KOPTAN.apk — signing: $SIGNING" --latest
+          gh release create "$TAG" KOPTX.apk --repo "${{ github.repository }}" --target "${{ github.sha }}" \
+            --title "KOPT X $VER (build ${{ github.run_number }})" \
+            --notes "KOPT X — business manager, with automatic in-app updates. APK file: KOPTX.apk — signing: $SIGNING" --latest

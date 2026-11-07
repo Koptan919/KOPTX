@@ -11,5 +11,7 @@ for f in $FILES; do cp "$SRC/$f" "$OUT/$f"; done
 mkdir -p "$OUT/fonts" && cp "$SRC"/fonts/* "$OUT/fonts/"
 rm -f "$OUT"/koptan-*.zip
 (cd "$SRC" && zip -q -X -r "$OUT/koptan-$VER.zip" $FILES fonts)
-printf '{"version":"%s","zip":"https://koptan919.github.io/Koptan/koptan-%s.zip"}\n' "$VER" "$VER" > "$OUT/version.json"
+# Pages address of this repository (renamed Koptan → KOPTX on 2026-11-07). Override with PAGES_BASE if the repo is renamed again.
+BASE="${PAGES_BASE:-https://koptan919.github.io/KOPTX}"
+printf '{"version":"%s","zip":"%s/koptan-%s.zip"}\n' "$VER" "$BASE" "$VER" > "$OUT/version.json"
 echo "published $VER"
