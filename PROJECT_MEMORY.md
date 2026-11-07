@@ -276,7 +276,7 @@ All new code is at the end of `extra.js` (section “v9.7”). Small hooks are i
 - The owner's phone (Android, looks like Realme/Oppo, running the APK) showed no biometric row in Security, and no button on the lock screen. Cause: `bioAvail()` returned '' and `bioRow()` hid the row silently. Also, `bio`/`bioId` are left out of backups on purpose, so a reinstall + restore turns the option off.
 - Checked `@capgo/capacitor-native-biometric@6.0.4` (Android): `isAvailable` uses the deprecated `BiometricManager.canAuthenticate()` (= BIOMETRIC_WEAK) and returns `errorCode` (1 hardware unavailable or not present, 3 none enrolled, 0 other). `biometryType` only reflects PackageManager features. Weak face unlock is allowed if the OEM exposes it to BiometricPrompt; many (Oppo/Realme/Xiaomi) don't.
 - Now `BIOE` keeps the reason (`none | hw | oldapk | web | unk`). The row stays visible with the reason and a “فحص مجددًا” button (`ACT.bioRe`). Biometrics are re-checked automatically when the app becomes visible again (after enrolling a fingerprint in the phone's settings).
-- Test F33 (native mock: not enrolled → reason + re-check → switch; hardware reason; old APK without the plugin → KOPTX.apk hint).
+- Test F33 (native mock: not enrolled → reason + re-check → switch; hardware reason; old APK without the plugin → KOPTX.apk hint). Full `tests/run.sh shots`: e2e 42/42, features 33/33, self-update, SW upgrade, no overflow. Deployed 9.9.1; *Verify live site* run 42369360358 all PASS. Waiting for the owner to report what the row says on their phone.
 
 ---
 
