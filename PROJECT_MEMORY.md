@@ -278,6 +278,9 @@ All new code is at the end of `extra.js` (section “v9.7”). Small hooks are i
 - Now `BIOE` keeps the reason (`none | hw | oldapk | web | unk`). The row stays visible with the reason and a “فحص مجددًا” button (`ACT.bioRe`). Biometrics are re-checked automatically when the app becomes visible again (after enrolling a fingerprint in the phone's settings).
 - Test F33 (native mock: not enrolled → reason + re-check → switch; hardware reason; old APK without the plugin → KOPTX.apk hint). Full `tests/run.sh shots`: e2e 42/42, features 33/33, self-update, SW upgrade, no overflow. Deployed 9.9.1; *Verify live site* run 42369360358 all PASS. Waiting for the owner to report what the row says on their phone.
 
+### 2026-11-07: docs/BUILD-GUIDE.md
+- The owner asked for a file explaining how the app and its auto-update were built, to teach Claude Code. Added `docs/BUILD-GUIDE.md` (Arabic). It covers: architecture and file roles, data rules, i18n, both update paths (Service Worker + `version.json` + reload; Capgo manual mode download → next → set, `notifyAppReady` rollback, `whenIdle`), `publish-web.sh`, the four version bumps, permanent APK signing, real build problems and fixes, tests, the release checklist and a ready prompt for building a similar app. Written from the current code (9.9.1). Docs only; no app change, no deploy.
+
 ---
 
 ## 8. Known issues / pending
